@@ -5,3 +5,5 @@ Inferno represents services and resources in a file-like name hierarchy.  Progra
 Inferno can run 'native' on various ARM, PowerPC, SPARC and x86 platforms but also 'hosted', under an existing operating system (including AIX, FreeBSD, IRIX, Linux, MacOS X, Plan 9, and Solaris), again on various processor types.
 
 This repository includes source code for the basic applications, Inferno itself (hosted and native), all supporting software, including the native compiler suite, essential executables and supporting files.
+
+<!-- Declarative environment verification -->
