@@ -14,13 +14,12 @@ commonLabels:
 patches:
   # Staging: override namespace
   - target:
-      kind: Namespace
-      name: inferno
     patch: |
       apiVersion: v1
       kind: Namespace
       metadata:
         name: inferno-staging
+
 
   # Staging registry: minimal resources
   - target:
