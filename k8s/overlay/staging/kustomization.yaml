@@ -20,8 +20,6 @@ patches:
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: inferno
-      metadata:
         name: inferno-staging
 
   # Staging registry: minimal resources
