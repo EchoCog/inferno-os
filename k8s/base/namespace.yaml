@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: inferno
+  labels:
+    app.kubernetes.io/name: inferno-os
+    app.kubernetes.io/part-of: inferno-cluster

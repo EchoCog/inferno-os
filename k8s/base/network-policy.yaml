@@ -1,0 +1,167 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: inferno-default-deny
+  namespace: inferno
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: inferno-registry-policy
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno-registry
+    app.kubernetes.io/part-of: inferno-cluster
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: registry
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: inferno-cluster
+      ports:
+        - port: 6675
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 6675
+          protocol: TCP
+    - from:
+        - podSelector: {}
+      ports:
+        - port: 9100
+          protocol: TCP
+  egress:
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: inferno-cpupool-policy
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno-cpupool
+    app.kubernetes.io/part-of: inferno-cluster
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: cpupool
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: inferno-cluster
+      ports:
+        - port: 6676
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 6676
+          protocol: TCP
+    - from:
+        - podSelector: {}
+      ports:
+        - port: 9100
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: registry
+      ports:
+        - port: 6675
+          protocol: TCP
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: inferno-emulator-policy
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno
+    app.kubernetes.io/part-of: inferno-cluster
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: emulator
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 6677
+          protocol: TCP
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: inferno-cluster
+      ports:
+        - port: 6677
+          protocol: TCP
+    - from:
+        - podSelector: {}
+      ports:
+        - port: 9100
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: registry
+      ports:
+        - port: 6675
+          protocol: TCP
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: cpupool
+      ports:
+        - port: 6676
+          protocol: TCP
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP

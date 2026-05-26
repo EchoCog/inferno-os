@@ -1,0 +1,24 @@
+{{- if .Values.cpupool.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-cpupool
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.cpupoolLabels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "inferno-cluster.cpupoolSelectorLabels" . | nindent 4 }}
+  ports:
+    - name: styx
+      port: {{ .Values.cpupool.port }}
+      targetPort: styx
+      protocol: TCP
+    {{- if .Values.monitoring.enabled }}
+    - name: metrics
+      port: {{ .Values.monitoring.metricsPort }}
+      targetPort: metrics
+      protocol: TCP
+    {{- end }}
+{{- end }}

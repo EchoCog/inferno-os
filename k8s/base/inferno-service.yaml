@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: inferno
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno
+    app.kubernetes.io/component: emulator
+    app.kubernetes.io/part-of: inferno-cluster
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: inferno
+    app.kubernetes.io/component: emulator
+  ports:
+    - name: styx
+      port: 6677
+      targetPort: styx
+      protocol: TCP
+    - name: metrics
+      port: 9100
+      targetPort: metrics
+      protocol: TCP

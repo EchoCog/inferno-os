@@ -1,0 +1,61 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.serviceMonitor.enabled }}
+{{- if .Values.registry.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-registry
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.registryLabels" . | nindent 4 }}
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: registry
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      path: /metrics
+      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
+{{- end }}
+---
+{{- if .Values.cpupool.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-cpupool
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.cpupoolLabels" . | nindent 4 }}
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: cpupool
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      path: /metrics
+      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
+{{- end }}
+---
+{{- if .Values.emulator.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-emulator
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.emulatorLabels" . | nindent 4 }}
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: emulator
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      path: /metrics
+      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
+{{- end }}
+{{- end }}

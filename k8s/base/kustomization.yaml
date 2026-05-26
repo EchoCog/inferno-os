@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: inferno
+
+commonLabels:
+  app.kubernetes.io/part-of: inferno-cluster
+  app.kubernetes.io/managed-by: kustomize
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - registry-deployment.yaml
+  - registry-service.yaml
+  - cpupool-deployment.yaml
+  - cpupool-service.yaml
+  - inferno-deployment.yaml
+  - inferno-service.yaml
+  - hpa.yaml
+  - ingress.yaml
+  - network-policy.yaml
+  - servicemonitor.yaml
+  - logging-configmap.yaml

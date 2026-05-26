@@ -1,0 +1,56 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: inferno-registry-monitor
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno-registry
+    app.kubernetes.io/part-of: inferno-cluster
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: registry
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: inferno-cpupool-monitor
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno-cpupool
+    app.kubernetes.io/part-of: inferno-cluster
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: cpupool
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: inferno-emulator-monitor
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno
+    app.kubernetes.io/part-of: inferno-cluster
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: emulator
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scrapeTimeout: 10s

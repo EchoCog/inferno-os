@@ -1,0 +1,28 @@
+#
+# Staging mkconfig for Inferno OS cluster deployment
+#
+# This configuration mirrors production but may include
+# debug-friendly settings for testing.
+#
+
+ROOT=/usr/inferno
+
+#
+# Tk flavour
+#
+TKSTYLE=std
+
+#
+# Host and target configuration
+#
+SYSHOST=Linux
+SYSTARG=Linux
+OBJTYPE=386
+
+#
+# Derived paths
+#
+OBJDIR=$SYSTARG/$OBJTYPE
+
+<$ROOT/mkfiles/mkhost-$SYSHOST
+<$ROOT/mkfiles/mkfile-$SYSTARG-$OBJTYPE

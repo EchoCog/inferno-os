@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inferno-config
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno-os
+    app.kubernetes.io/part-of: inferno-cluster
+data:
+  ROOT: "/usr/inferno"
+  SYSHOST: "Linux"
+  SYSTARG: "Linux"
+  OBJTYPE: "386"
+  TKSTYLE: "std"
+  # Styx registry listen address
+  REGISTRY_ADDR: "tcp!*!6675"
+  # CPU pool configuration
+  CPUPOOL_MAX_WORKERS: "8"
+  CPUPOOL_IDLE_TIMEOUT: "300"
+  # Inferno emulator settings
+  EMU_FLAGS: "-c1"
+  # mkconfig template for container builds
+  mkconfig: |
+    ROOT=/usr/inferno
+    TKSTYLE=std
+    SYSHOST=Linux
+    SYSTARG=Linux
+    OBJTYPE=386
+    OBJDIR=$SYSTARG/$OBJTYPE
+    <$ROOT/mkfiles/mkhost-$SYSHOST
+    <$ROOT/mkfiles/mkfile-$SYSTARG-$OBJTYPE

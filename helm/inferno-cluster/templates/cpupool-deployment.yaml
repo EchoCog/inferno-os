@@ -1,0 +1,53 @@
+{{- if .Values.cpupool.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-cpupool
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.cpupoolLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.cpupool.replicas }}
+  selector:
+    matchLabels:
+      {{- include "inferno-cluster.cpupoolSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "inferno-cluster.cpupoolSelectorLabels" . | nindent 8 }}
+      annotations:
+        {{- include "inferno-cluster.prometheusAnnotations" . | nindent 8 }}
+    spec:
+      containers:
+        - name: cpupool
+          image: {{ include "inferno-cluster.image" . }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          command: ["emu"]
+          args:
+            - "-c1"
+            - "grid/cpupool"
+            - "-r"
+            - "tcp!{{ include "inferno-cluster.fullname" . }}-registry!{{ .Values.registry.port }}"
+          ports:
+            - name: styx
+              containerPort: {{ .Values.cpupool.port }}
+              protocol: TCP
+            {{- if .Values.monitoring.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.monitoring.metricsPort }}
+              protocol: TCP
+            {{- end }}
+          env:
+            - name: INFERNO
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "inferno-cluster.fullname" . }}-config
+                  key: ROOT
+            - name: REGISTRY_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "inferno-cluster.fullname" . }}-config
+                  key: REGISTRY_ADDR
+          resources:
+            {{- toYaml .Values.cpupool.resources | nindent 12 }}
+{{- end }}

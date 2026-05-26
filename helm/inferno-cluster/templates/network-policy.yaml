@@ -1,0 +1,172 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-default-deny
+  namespace: {{ .Values.global.namespace }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+{{- if .Values.registry.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-registry
+  namespace: {{ .Values.global.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: registry
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: inferno-cluster
+      ports:
+        - port: {{ .Values.registry.port }}
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: {{ .Values.registry.port }}
+          protocol: TCP
+    {{- if .Values.monitoring.enabled }}
+    - from:
+        - podSelector: {}
+      ports:
+        - port: {{ .Values.monitoring.metricsPort }}
+          protocol: TCP
+    {{- end }}
+  egress:
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+{{- end }}
+---
+{{- if .Values.cpupool.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-cpupool
+  namespace: {{ .Values.global.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: cpupool
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: inferno-cluster
+      ports:
+        - port: {{ .Values.cpupool.port }}
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: {{ .Values.cpupool.port }}
+          protocol: TCP
+    {{- if .Values.monitoring.enabled }}
+    - from:
+        - podSelector: {}
+      ports:
+        - port: {{ .Values.monitoring.metricsPort }}
+          protocol: TCP
+    {{- end }}
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: registry
+      ports:
+        - port: {{ .Values.registry.port }}
+          protocol: TCP
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+{{- end }}
+---
+{{- if .Values.emulator.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-emulator
+  namespace: {{ .Values.global.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: emulator
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: {{ .Values.emulator.port }}
+          protocol: TCP
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: inferno-cluster
+      ports:
+        - port: {{ .Values.emulator.port }}
+          protocol: TCP
+    {{- if .Values.monitoring.enabled }}
+    - from:
+        - podSelector: {}
+      ports:
+        - port: {{ .Values.monitoring.metricsPort }}
+          protocol: TCP
+    {{- end }}
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: registry
+      ports:
+        - port: {{ .Values.registry.port }}
+          protocol: TCP
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: cpupool
+      ports:
+        - port: {{ .Values.cpupool.port }}
+          protocol: TCP
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+{{- end }}
+{{- end }}

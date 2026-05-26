@@ -1,0 +1,70 @@
+{{- if .Values.emulator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-emulator
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.emulatorLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.emulator.replicas }}
+  selector:
+    matchLabels:
+      {{- include "inferno-cluster.emulatorSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "inferno-cluster.emulatorSelectorLabels" . | nindent 8 }}
+      annotations:
+        {{- include "inferno-cluster.prometheusAnnotations" . | nindent 8 }}
+    spec:
+      containers:
+        - name: inferno
+          image: {{ include "inferno-cluster.image" . }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          command: ["emu"]
+          args:
+            - {{ .Values.emulator.emuFlags | quote }}
+          ports:
+            - name: styx
+              containerPort: {{ .Values.emulator.port }}
+              protocol: TCP
+            {{- if .Values.monitoring.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.monitoring.metricsPort }}
+              protocol: TCP
+            {{- end }}
+          env:
+            - name: INFERNO
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "inferno-cluster.fullname" . }}-config
+                  key: ROOT
+            - name: REGISTRY_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "inferno-cluster.fullname" . }}-config
+                  key: REGISTRY_ADDR
+          resources:
+            {{- toYaml .Values.emulator.resources | nindent 12 }}
+          livenessProbe:
+            exec:
+              command:
+                - emu
+                - cat
+                - /dev/sysctl
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - emu
+                - cat
+                - /dev/sysctl
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+{{- end }}

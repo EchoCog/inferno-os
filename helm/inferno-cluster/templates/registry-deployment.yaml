@@ -1,0 +1,54 @@
+{{- if .Values.registry.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-registry
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.registryLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.registry.replicas }}
+  selector:
+    matchLabels:
+      {{- include "inferno-cluster.registrySelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "inferno-cluster.registrySelectorLabels" . | nindent 8 }}
+      annotations:
+        {{- include "inferno-cluster.prometheusAnnotations" . | nindent 8 }}
+    spec:
+      containers:
+        - name: registry
+          image: {{ include "inferno-cluster.image" . }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          command: ["emu"]
+          args:
+            - "-c1"
+            - "ndb/registry"
+          ports:
+            - name: styx
+              containerPort: {{ .Values.registry.port }}
+              protocol: TCP
+            {{- if .Values.monitoring.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.monitoring.metricsPort }}
+              protocol: TCP
+            {{- end }}
+          env:
+            - name: INFERNO
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "inferno-cluster.fullname" . }}-config
+                  key: ROOT
+          resources:
+            {{- toYaml .Values.registry.resources | nindent 12 }}
+          {{- with .Values.registry.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.registry.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

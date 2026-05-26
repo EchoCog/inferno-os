@@ -1,0 +1,173 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: inferno-staging
+
+resources:
+  - ../../base
+
+namePrefix: staging-
+
+commonLabels:
+  environment: staging
+
+patches:
+  # Staging: override namespace
+  - target:
+      kind: Namespace
+      name: inferno
+    patch: |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: inferno
+      metadata:
+        name: inferno-staging
+
+  # Staging registry: minimal resources
+  - target:
+      kind: Deployment
+      name: inferno-registry
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: inferno-registry
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+              - name: registry
+                resources:
+                  requests:
+                    cpu: 50m
+                    memory: 64Mi
+                  limits:
+                    cpu: 250m
+                    memory: 128Mi
+
+  # Staging cpupool: minimal resources
+  - target:
+      kind: Deployment
+      name: inferno-cpupool
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: inferno-cpupool
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+              - name: cpupool
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                  limits:
+                    cpu: 500m
+                    memory: 256Mi
+
+  # Staging inferno: minimal resources
+  - target:
+      kind: Deployment
+      name: inferno
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: inferno
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+              - name: inferno
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                  limits:
+                    cpu: 500m
+                    memory: 256Mi
+
+  # Staging HPA: lower limits
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: inferno-hpa
+    patch: |
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: inferno-hpa
+      spec:
+        minReplicas: 1
+        maxReplicas: 3
+
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: inferno-cpupool-hpa
+    patch: |
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: inferno-cpupool-hpa
+      spec:
+        minReplicas: 1
+        maxReplicas: 5
+
+  # Staging: use staging hostname and self-signed cert
+  - target:
+      kind: Ingress
+      name: inferno-ingress
+    patch: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: inferno-ingress
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-staging
+      spec:
+        tls:
+          - hosts:
+              - inferno-staging.example.com
+            secretName: inferno-staging-tls
+        rules:
+          - host: inferno-staging.example.com
+            http:
+              paths:
+                - path: /registry
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: staging-inferno-registry
+                      port:
+                        name: styx
+                - path: /cpupool
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: staging-inferno-cpupool
+                      port:
+                        name: styx
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: staging-inferno
+                      port:
+                        name: styx
+
+  # Staging inferno service: NodePort instead of LoadBalancer
+  - target:
+      kind: Service
+      name: inferno
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: inferno
+      spec:
+        type: NodePort

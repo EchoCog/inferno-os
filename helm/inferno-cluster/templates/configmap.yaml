@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.labels" . | nindent 4 }}
+data:
+  ROOT: {{ .Values.inferno.root | quote }}
+  SYSHOST: {{ .Values.inferno.syshost | quote }}
+  SYSTARG: {{ .Values.inferno.systarg | quote }}
+  OBJTYPE: {{ .Values.inferno.objtype | quote }}
+  TKSTYLE: {{ .Values.inferno.tkstyle | quote }}
+  REGISTRY_ADDR: "tcp!*!{{ .Values.registry.port }}"
+  CPUPOOL_MAX_WORKERS: {{ .Values.cpupool.maxWorkers | quote }}
+  CPUPOOL_IDLE_TIMEOUT: {{ .Values.cpupool.idleTimeout | quote }}
+  EMU_FLAGS: {{ .Values.emulator.emuFlags | quote }}
+  mkconfig: |
+    ROOT={{ .Values.inferno.root }}
+    TKSTYLE={{ .Values.inferno.tkstyle }}
+    SYSHOST={{ .Values.inferno.syshost }}
+    SYSTARG={{ .Values.inferno.systarg }}
+    OBJTYPE={{ .Values.inferno.objtype }}
+    OBJDIR=$SYSTARG/$OBJTYPE
+    <$ROOT/mkfiles/mkhost-$SYSHOST
+    <$ROOT/mkfiles/mkfile-$SYSTARG-$OBJTYPE
