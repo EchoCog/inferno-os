@@ -35,22 +35,4 @@ spec:
       interval: 30s
       path: /metrics
       scrapeTimeout: 10s
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: inferno-emulator-monitor
-  namespace: inferno
-  labels:
-    app.kubernetes.io/name: inferno
-    app.kubernetes.io/part-of: inferno-cluster
-    release: prometheus
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/component: emulator
-  endpoints:
-    - port: metrics
-      interval: 30s
-      path: /metrics
-      scrapeTimeout: 10s
+
