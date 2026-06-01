@@ -39,7 +39,7 @@ spec:
       scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
 {{- end }}
 ---
-{{- if and .Values.emulator.enabled (ne .Values.emulator.serviceType "LoadBalancer") }}
+{{- if .Values.emulator.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:

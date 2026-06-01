@@ -15,7 +15,7 @@ spec:
       port: {{ .Values.emulator.port }}
       targetPort: styx
       protocol: TCP
-    {{- if and .Values.monitoring.enabled (ne .Values.emulator.serviceType "LoadBalancer") }}
+    {{- if .Values.monitoring.enabled }}
     - name: metrics
       port: {{ .Values.monitoring.metricsPort }}
       targetPort: metrics
