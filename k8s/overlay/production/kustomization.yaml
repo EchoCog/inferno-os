@@ -114,8 +114,7 @@ patches:
       metadata:
         name: inferno-ingress
         annotations:
-          nginx.ingress.kubernetes.io/rate-limit: "100"
-          nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+          nginx.ingress.kubernetes.io/limit-rps: "100"
       spec:
         tls:
           - hosts:
