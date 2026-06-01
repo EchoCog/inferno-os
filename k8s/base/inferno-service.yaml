@@ -17,7 +17,3 @@ spec:
       port: 6677
       targetPort: styx
       protocol: TCP
-    - name: metrics
-      port: 9100
-      targetPort: metrics
-      protocol: TCP
