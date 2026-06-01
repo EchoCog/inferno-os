@@ -54,6 +54,6 @@ helm install inferno helm/inferno-cluster --namespace inferno --create-namespace
 ### CI/CD
 
 GitHub Actions pipeline (`.github/workflows/build-deploy.yml`) provides automated build, test, validation, and deployment to staging/production.
-This repository includes source code for the basic applications, Inferno itself (hosted and native), all supporting software, including the native compiler suite, essential executables and supporting files.
+
 
 <!-- Declarative environment verification -->
