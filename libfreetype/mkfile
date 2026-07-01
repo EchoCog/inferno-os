@@ -82,6 +82,6 @@ OFILES=\
 
 <$ROOT/mkfiles/mksyslib-$SHELLTYPE
 
-CFLAGS= $ANSICPP $CFLAGS -DFT2_BUILD_LIBRARY -Ilibfreetype/include
+CFLAGS= $ANSICPP -Ilibfreetype/include $CFLAGS -DFT2_BUILD_LIBRARY
 
 freetype.$O:	$ROOT/include/freetype.h
