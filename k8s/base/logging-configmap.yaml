@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inferno-logging-config
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno-os
+    app.kubernetes.io/part-of: inferno-cluster
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush        5
+        Daemon       Off
+        Log_Level    info
+        Parsers_File parsers.conf
+
+    [INPUT]
+        Name         tail
+        Path         /var/log/inferno/*.log
+        Tag          inferno.*
+        Refresh_Interval 10
+        Read_from_Head   true
+
+    [FILTER]
+        Name         modify
+        Match        inferno.*
+        Add          cluster inferno-cluster
+        Add          namespace inferno
+
+    [FILTER]
+        Name         parser
+        Match        inferno.*
+        Key_Name     log
+        Parser       inferno_log
+        Reserve_Data true
+
+    [OUTPUT]
+        Name         stdout
+        Match        *
+        Format       json_lines
+
+  parsers.conf: |
+    [PARSER]
+        Name         inferno_log
+        Format       regex
+        Regex        ^(?<timestamp>[^ ]+) (?<level>[^ ]+) (?<component>[^ ]+): (?<message>.*)$
+        Time_Key     timestamp
+        Time_Format  %Y-%m-%dT%H:%M:%S
+
+  log-rotation.conf: |
+    /var/log/inferno/*.log {
+        daily
+        missingok
+        rotate 7
+        compress
+        delaycompress
+        notifempty
+        copytruncate
+        maxsize 100M
+    }

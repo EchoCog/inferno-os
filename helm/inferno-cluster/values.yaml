@@ -1,0 +1,128 @@
+# Default values for inferno-cluster
+# Override these for your environment
+
+global:
+  namespace: inferno
+  image:
+    repository: ghcr.io/echocog/inferno-os
+    tag: latest
+    pullPolicy: IfNotPresent
+
+# Inferno OS configuration
+inferno:
+  root: /usr/inferno
+  syshost: Linux
+  systarg: Linux
+  objtype: "386"
+  tkstyle: std
+
+# Registry service (ndb/registry)
+registry:
+  enabled: true
+  replicas: 2
+  port: 6675
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  livenessProbe:
+    tcpSocket:
+      port: 6675
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    tcpSocket:
+      port: 6675
+    initialDelaySeconds: 10
+    periodSeconds: 5
+
+# CPU pool service (grid/cpupool)
+cpupool:
+  enabled: true
+  replicas: 3
+  port: 6676
+  maxWorkers: 8
+  idleTimeout: 300
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  livenessProbe:
+    tcpSocket:
+      port: 6676
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    tcpSocket:
+      port: 6676
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilization: 60
+    targetMemoryUtilization: 75
+
+# Main Inferno emulator instances
+emulator:
+  enabled: true
+  replicas: 2
+  port: 6677
+  emuFlags: "-c1"
+  serviceType: LoadBalancer
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+    targetMemoryUtilization: 80
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  host: inferno.example.com
+  tls:
+    enabled: true
+    secretName: inferno-tls
+    clusterIssuer: letsencrypt-prod
+  annotations: {}
+
+# Network policies
+networkPolicy:
+  enabled: true
+
+# Monitoring
+monitoring:
+  enabled: true
+  metricsPort: 9100
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+  prometheusAnnotations: true
+
+# Logging
+logging:
+  enabled: true
+  fluentbit:
+    logLevel: info
+    flushInterval: 5

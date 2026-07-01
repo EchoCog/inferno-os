@@ -1,0 +1,57 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-ingress
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    {{- if .Values.ingress.tls.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.tls.clusterIssuer }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          {{- if .Values.registry.enabled }}
+          - path: /registry
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "inferno-cluster.fullname" . }}-registry
+                port:
+                  name: styx
+          {{- end }}
+          {{- if .Values.cpupool.enabled }}
+          - path: /cpupool
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "inferno-cluster.fullname" . }}-cpupool
+                port:
+                  name: styx
+          {{- end }}
+          {{- if .Values.emulator.enabled }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "inferno-cluster.fullname" . }}-emulator
+                port:
+                  name: styx
+          {{- end }}
+{{- end }}

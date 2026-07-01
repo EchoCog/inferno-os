@@ -1,0 +1,85 @@
+{{- if .Values.emulator.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-emulator
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.emulatorLabels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "inferno-cluster.fullname" . }}-emulator
+  minReplicas: {{ .Values.emulator.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.emulator.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.emulator.autoscaling.targetCPUUtilization }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.emulator.autoscaling.targetMemoryUtilization }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+{{- end }}
+---
+{{- if .Values.cpupool.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-cpupool
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.cpupoolLabels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "inferno-cluster.fullname" . }}-cpupool
+  minReplicas: {{ .Values.cpupool.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.cpupool.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.cpupool.autoscaling.targetCPUUtilization }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.cpupool.autoscaling.targetMemoryUtilization }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 4
+          periodSeconds: 60
+{{- end }}

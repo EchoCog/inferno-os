@@ -1,0 +1,28 @@
+#
+# Production mkconfig for Inferno OS cluster deployment
+#
+# This configuration is optimized for containerized production environments.
+# It is injected into containers via ConfigMap.
+#
+
+ROOT=/usr/inferno
+
+#
+# Tk flavour
+#
+TKSTYLE=std
+
+#
+# Host and target configuration (Linux/386 for container builds)
+#
+SYSHOST=Linux
+SYSTARG=Linux
+OBJTYPE=386
+
+#
+# Derived paths
+#
+OBJDIR=$SYSTARG/$OBJTYPE
+
+<$ROOT/mkfiles/mkhost-$SYSHOST
+<$ROOT/mkfiles/mkfile-$SYSTARG-$OBJTYPE

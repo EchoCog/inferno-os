@@ -1,0 +1,24 @@
+{{- if .Values.registry.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "inferno-cluster.fullname" . }}-registry
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "inferno-cluster.registryLabels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "inferno-cluster.registrySelectorLabels" . | nindent 4 }}
+  ports:
+    - name: styx
+      port: {{ .Values.registry.port }}
+      targetPort: styx
+      protocol: TCP
+    {{- if .Values.monitoring.enabled }}
+    - name: metrics
+      port: {{ .Values.monitoring.metricsPort }}
+      targetPort: metrics
+      protocol: TCP
+    {{- end }}
+{{- end }}

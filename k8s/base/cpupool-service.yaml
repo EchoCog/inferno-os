@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: inferno-cpupool
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno-cpupool
+    app.kubernetes.io/component: cpupool
+    app.kubernetes.io/part-of: inferno-cluster
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: inferno-cpupool
+    app.kubernetes.io/component: cpupool
+  ports:
+    - name: styx
+      port: 6676
+      targetPort: styx
+      protocol: TCP
+    - name: metrics
+      port: 9100
+      targetPort: metrics
+      protocol: TCP

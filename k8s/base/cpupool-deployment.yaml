@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inferno-cpupool
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno-cpupool
+    app.kubernetes.io/component: cpupool
+    app.kubernetes.io/part-of: inferno-cluster
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: inferno-cpupool
+      app.kubernetes.io/component: cpupool
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: inferno-cpupool
+        app.kubernetes.io/component: cpupool
+        app.kubernetes.io/part-of: inferno-cluster
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100"
+    spec:
+      containers:
+        - name: cpupool
+          image: ghcr.io/echocog/inferno-os:latest
+          command: ["emu"]
+          args:
+            - "-c1"
+            - "grid/cpupool"
+            - "-r"
+            - "tcp!inferno-registry!6675"
+          ports:
+            - name: styx
+              containerPort: 6676
+              protocol: TCP
+            - name: metrics
+              containerPort: 9100
+              protocol: TCP
+          env:
+            - name: INFERNO
+              valueFrom:
+                configMapKeyRef:
+                  name: inferno-config
+                  key: ROOT
+            - name: REGISTRY_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: inferno-config
+                  key: REGISTRY_ADDR
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          livenessProbe:
+            tcpSocket:
+              port: styx
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: styx
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      restartPolicy: Always

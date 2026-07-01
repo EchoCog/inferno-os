@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: inferno-ingress
+  namespace: inferno
+  labels:
+    app.kubernetes.io/name: inferno-os
+    app.kubernetes.io/part-of: inferno-cluster
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - inferno.example.com
+      secretName: inferno-tls
+  rules:
+    - host: inferno.example.com
+      http:
+        paths:
+          - path: /registry
+            pathType: Prefix
+            backend:
+              service:
+                name: inferno-registry
+                port:
+                  name: styx
+          - path: /cpupool
+            pathType: Prefix
+            backend:
+              service:
+                name: inferno-cpupool
+                port:
+                  name: styx
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: inferno
+                port:
+                  name: styx

@@ -1,0 +1,59 @@
+# Stage 1: Build Inferno OS
+FROM i386/ubuntu:devel AS builder
+
+RUN apt-get -y update && apt-get install -y \
+    libx11-dev \
+    libxext-dev \
+    libc6-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV INFERNO=/usr/inferno
+COPY . $INFERNO
+WORKDIR $INFERNO
+
+# Generate mkconfig for container build
+RUN echo "ROOT=$INFERNO" > mkconfig && \
+    echo "TKSTYLE=std" >> mkconfig && \
+    echo "SYSHOST=Linux" >> mkconfig && \
+    echo "SYSTARG=Linux" >> mkconfig && \
+    echo "OBJTYPE=386" >> mkconfig && \
+    echo 'OBJDIR=$SYSTARG/$OBJTYPE' >> mkconfig && \
+    echo '<$ROOT/mkfiles/mkhost-$SYSHOST' >> mkconfig && \
+    echo '<$ROOT/mkfiles/mkfile-$SYSTARG-$OBJTYPE' >> mkconfig
+
+RUN ./makemk.sh
+ENV PATH="$INFERNO/Linux/386/bin:${PATH}"
+RUN mk nuke && mk install
+
+# Stage 2: Production runtime
+FROM i386/ubuntu:devel AS production
+
+RUN apt-get -y update && apt-get install -y \
+    libx11-6 \
+    libxext6 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for running Inferno
+RUN groupadd -r inferno && useradd -r -g inferno -d /usr/inferno inferno
+
+ENV INFERNO=/usr/inferno
+COPY --from=builder $INFERNO $INFERNO
+WORKDIR $INFERNO
+
+ENV PATH="$INFERNO/Linux/386/bin:${PATH}"
+
+# Create log directory
+RUN mkdir -p /var/log/inferno && chown inferno:inferno /var/log/inferno
+
+# Expose ports for Styx protocol and metrics
+EXPOSE 6675 6676 6677 9100
+
+# Health check using emu sysctl
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD emu cat /dev/sysctl || exit 1
+
+USER inferno
+
+CMD ["emu", "-c1"]

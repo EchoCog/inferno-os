@@ -1,0 +1,122 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: inferno
+
+resources:
+  - ../../base
+
+commonLabels:
+  environment: production
+
+patches:
+  # Production registry: higher resources and replicas
+  - target:
+      kind: Deployment
+      name: inferno-registry
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: inferno-registry
+      spec:
+        replicas: 3
+        template:
+          spec:
+            containers:
+              - name: registry
+                resources:
+                  requests:
+                    cpu: 250m
+                    memory: 256Mi
+                  limits:
+                    cpu: "1"
+                    memory: 512Mi
+
+  # Production cpupool: higher resources and replicas
+  - target:
+      kind: Deployment
+      name: inferno-cpupool
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: inferno-cpupool
+      spec:
+        replicas: 5
+        template:
+          spec:
+            containers:
+              - name: cpupool
+                resources:
+                  requests:
+                    cpu: 500m
+                    memory: 512Mi
+                  limits:
+                    cpu: "2"
+                    memory: "1Gi"
+
+  # Production inferno emulator: higher resources
+  - target:
+      kind: Deployment
+      name: inferno
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: inferno
+      spec:
+        replicas: 3
+        template:
+          spec:
+            containers:
+              - name: inferno
+                resources:
+                  requests:
+                    cpu: 500m
+                    memory: 512Mi
+                  limits:
+                    cpu: "2"
+                    memory: "1Gi"
+
+  # Production HPA: higher limits
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: inferno-hpa
+    patch: |
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: inferno-hpa
+      spec:
+        minReplicas: 3
+        maxReplicas: 20
+
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: inferno-cpupool-hpa
+    patch: |
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: inferno-cpupool-hpa
+      spec:
+        minReplicas: 5
+        maxReplicas: 50
+
+  # Production ingress: real hostname
+  - target:
+      kind: Ingress
+      name: inferno-ingress
+    patch: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: inferno-ingress
+        annotations:
+          nginx.ingress.kubernetes.io/limit-rps: "100"
+      spec:
+        tls:
+          - hosts:
+              - inferno.example.com
+            secretName: inferno-prod-tls
