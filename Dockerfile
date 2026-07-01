@@ -4,7 +4,9 @@ RUN apt-get -y update
 RUN apt-get install -y libx11-dev \
 	libxext-dev \
 	libc6-dev \
-	gcc
+	gcc \
+	curl \
+	xz-utils
 
 # if on i386 there's no need for multilib
 #RUN apt-get install -y libc6-dev-i386
@@ -14,6 +16,17 @@ RUN apt-get install -y libx11-dev \
 ENV INFERNO=/usr/inferno
 COPY . $INFERNO
 WORKDIR $INFERNO
+
+# Download FreeType 2.13.2 source into libfreetype/libfreetype/
+# The libfreetype/mkfile expects sources at libfreetype/src/... and headers
+# at libfreetype/include/ (relative to the libfreetype/ build directory),
+# which resolve to libfreetype/libfreetype/src/... and
+# libfreetype/libfreetype/include/ respectively.
+RUN curl -L "https://download.savannah.gnu.org/releases/freetype/freetype-2.13.2.tar.xz" \
+        -o /tmp/freetype.tar.xz \
+    && tar xf /tmp/freetype.tar.xz -C libfreetype \
+    && mv libfreetype/freetype-2.13.2 libfreetype/libfreetype \
+    && rm /tmp/freetype.tar.xz
 
 # setup a custom mkconfig
 RUN echo > mkconfig ROOT=$INFERNO
