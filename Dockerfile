@@ -26,11 +26,24 @@ WORKDIR $INFERNO
 # at libfreetype/include/ (relative to the libfreetype/ build directory),
 # which resolve to libfreetype/libfreetype/src/... and
 # libfreetype/libfreetype/include/ respectively.
+#
+# After extraction, override FreeType's default config headers with Inferno's
+# custom versions.  The mkfile prepends -Ilibfreetype/include to CFLAGS, so
+# FreeType's own include directory takes priority over include/.  Without this
+# override, FreeType 2.13.2's default ftmodule.h registers BDF/SDF/SVG modules
+# and its default ftoption.h enables LZW and GX-variable-font support — all of
+# which reference symbols that are not compiled by the Inferno mkfile, causing
+# linker errors (bdf_driver_class, ft_sdf_renderer_class, FT_Stream_OpenLZW,
+# FT_Set_Named_Instance, etc.).  Copying Inferno's custom config files over the
+# downloaded ones ensures the build only references the modules that are
+# actually compiled.
 RUN curl -L "https://download.savannah.gnu.org/releases/freetype/freetype-${FREETYPE_VERSION}.tar.xz" \
         -o /tmp/freetype.tar.xz \
     && echo "${FREETYPE_SHA256}  /tmp/freetype.tar.xz" | sha256sum -c - \
     && tar xf /tmp/freetype.tar.xz -C libfreetype \
     && mv "libfreetype/freetype-${FREETYPE_VERSION}" libfreetype/libfreetype \
+    && cp include/freetype/config/ftoption.h  libfreetype/libfreetype/include/freetype/config/ftoption.h \
+    && cp include/freetype/config/ftmodule.h  libfreetype/libfreetype/include/freetype/config/ftmodule.h \
     && rm /tmp/freetype.tar.xz
 
 # setup a custom mkconfig
