@@ -24,8 +24,15 @@ tcp!*!8080             # expose loco to the network (Inferno dial string)
 tcp!host!9090          # reach grid on another machine
 ```
 
-`try.sh` and `tools/bootable/run-qemu.sh` forward **8080** and **9090**
-to the host so browser tools and peers can find you without hunting.
+`try.sh` and `tools/bootable/run-qemu.sh` use **peerbot** (default DENY).
+Publish nicknames only when the current test needs them:
+
+```bash
+./try.sh --allow loco
+./try.sh --allow loco,grid
+```
+
+See [PEERBOT.md](PEERBOT.md).
 
 ---
 

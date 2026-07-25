@@ -1,16 +1,60 @@
 #!/usr/bin/env bash
 # Express path: run Inferno with almost no prior knowledge.
 #
-#   ./try.sh
+#   ./try.sh                  # default DENY — no host ports published
+#   ./try.sh --allow loco     # open 8080 on 127.0.0.1 (local services test)
+#   ./try.sh --allow loco,grid
 #
-# Builds the hosted Docker image if needed, then starts Inferno.
-# Forwards loco (8080) and grid (9090) — see docs/NETWORK_PORTS.md.
+# peerbot manages publishes: block everything unless this test needs it.
+# See docs/PEERBOT.md and docs/NAMESPACE.md
 #
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 IMAGE="${TRY_IMAGE:-inferno-os:dev}"
 DOCKERFILE="${TRY_DOCKERFILE:-$ROOT/Dockerfile}"
+PEERBOT="$ROOT/tools/peerbot/peerbot.sh"
+ALLOW="${PEERBOT_ALLOW:-none}"
+PASS=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --allow)
+      ALLOW="${2:-none}"
+      shift 2
+      ;;
+    --allow=*)
+      ALLOW="${1#*=}"
+      shift
+      ;;
+    --public)
+      export PEERBOT_PUBLIC=1
+      shift
+      ;;
+    -h|--help)
+      cat <<EOF
+Usage: ./try.sh [--allow none|loco|loco,grid|...] [--public] [emu args...]
+
+  Default: peerbot DENY (no -p publishes). Learn /dev /prog first.
+  --allow loco       publish 8080 on 127.0.0.1
+  --allow loco,grid  publish 8080 and 9090 on 127.0.0.1
+  --public           bind 0.0.0.0 instead of loopback (careful)
+
+EOF
+      "$PEERBOT" list
+      exit 0
+      ;;
+    --)
+      shift
+      PASS+=("$@")
+      break
+      ;;
+    *)
+      PASS+=("$1")
+      shift
+      ;;
+  esac
+done
 
 if ! command -v docker >/dev/null 2>&1; then
   cat >&2 <<EOF
@@ -29,20 +73,27 @@ if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   docker build -f "$DOCKERFILE" -t "$IMAGE" "$ROOT"
 fi
 
+# Compat: TRY_PORTS still works for experts, but peerbot is preferred.
 port_args=()
-for spec in ${TRY_PORTS:-8080:8080 9090:9090}; do
-  port_args+=(-p "$spec")
-done
+if [[ -n "${TRY_PORTS:-}" ]]; then
+  echo "peerbot: TRY_PORTS override in effect (expert)"
+  for spec in $TRY_PORTS; do
+    port_args+=(-p "$spec")
+  done
+else
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    port_args+=("$line")
+  done < <("$PEERBOT" docker-args --allow "$ALLOW")
+fi
 
 echo "Starting Inferno (Express path)"
 echo "  image: $IMAGE"
-echo "  loco:  http://127.0.0.1:8080  (local services)"
-echo "  grid:  http://127.0.0.1:9090  (distributed services)"
-echo "  docs:  docs/GETTING_STARTED.md"
+"$PEERBOT" status --allow "$ALLOW"
+echo "  docs:  docs/GETTING_STARTED.md  docs/PEERBOT.md  docs/NAMESPACE.md"
 echo
-echo "Tip: want a real bootloader + kernel image?  tools/bootable/build.sh --docker"
+echo "Tip: name space first →  ls /dev   then later  ./try.sh --allow loco"
 echo
 
-# Default CMD in Dockerfile is: emu -c1 wm/wm
 # shellcheck disable=SC2086
-exec docker run --rm -it "${port_args[@]}" ${TRY_DOCKER_ARGS:-} "$IMAGE" "$@"
+exec docker run --rm -it "${port_args[@]}" ${TRY_DOCKER_ARGS:-} "$IMAGE" "${PASS[@]}"

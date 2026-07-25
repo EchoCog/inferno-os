@@ -1,29 +1,58 @@
 #!/usr/bin/env bash
 # Boot an Inferno image under QEMU (BIOS / i386).
 #
-# Usage:
 #   tools/bootable/run-qemu.sh [image.img]
+#   tools/bootable/run-qemu.sh --allow loco [image.img]
 #
-# Auto-detects floppy (~1.44MB) vs hard-disk images.
-#
-# Expert knobs (env):
-#   QEMU          qemu binary (default: qemu-system-i386)
-#   QEMU_MEM      memory, default 256M
-#   QEMU_EXTRA    extra qemu args
-#   QEMU_GRAPHIC  set to 1 for VGA window (default: serial console)
-#   QEMU_MEDIA    force floppy|hd
+# peerbot default DENY: no hostfwd unless you ask.
 #
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-IMG="${1:-$ROOT/tools/bootable/dist/inferno-boot.img}"
+PEERBOT="$ROOT/tools/peerbot/peerbot.sh"
+IMG=""
+ALLOW="${PEERBOT_ALLOW:-none}"
 QEMU="${QEMU:-qemu-system-i386}"
 MEM="${QEMU_MEM:-256M}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --allow)
+      ALLOW="${2:-none}"
+      shift 2
+      ;;
+    --allow=*)
+      ALLOW="${1#*=}"
+      shift
+      ;;
+    --public)
+      export PEERBOT_PUBLIC=1
+      shift
+      ;;
+    -h|--help)
+      cat <<EOF
+Usage: tools/bootable/run-qemu.sh [--allow none|loco|...] [--public] [image.img]
+
+  Default: no host port forwards (peerbot DENY).
+  --allow loco       forward 8080 on 127.0.0.1
+  --allow loco,grid  forward 8080 and 9090
+
+EOF
+      "$PEERBOT" list
+      exit 0
+      ;;
+    *)
+      IMG="$1"
+      shift
+      ;;
+  esac
+done
+
+IMG="${IMG:-$ROOT/tools/bootable/dist/inferno-boot.img}"
 
 if [[ ! -f "$IMG" ]]; then
   echo "error: image not found: $IMG" >&2
   echo "Build one with: tools/bootable/build.sh" >&2
-  echo "            or: tools/bootable/build.sh --hd" >&2
   exit 1
 fi
 
@@ -42,10 +71,16 @@ if [[ -z "$media" ]]; then
   fi
 fi
 
+fwds=$("$PEERBOT" qemu-fwds --allow "$ALLOW")
+netdev="user,id=n0"
+if [[ -n "$fwds" ]]; then
+  netdev="$netdev,$fwds"
+fi
+
 args=(
   -m "$MEM"
   -device rtl8139,netdev=n0
-  -netdev user,id=n0,hostfwd=tcp::8080-:8080,hostfwd=tcp::9090-:9090
+  -netdev "$netdev"
 )
 
 if [[ "$media" == "floppy" ]]; then
@@ -66,7 +101,7 @@ extra=( ${QEMU_EXTRA:-} )
 echo "Starting Inferno in QEMU"
 echo "  image:  $IMG"
 echo "  media:  $media"
-echo "  ports:  host 8080→guest loco, host 9090→guest grid"
+"$PEERBOT" status --allow "$ALLOW"
 echo "  tip:    ls /dev    ls /prog    (name space first)"
 echo "  exit:   Ctrl-A X  (nographic) or close the window"
 echo

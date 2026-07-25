@@ -19,19 +19,24 @@ This is the welcoming front door. You get a full Inferno environment
 (`emu`) without touching bootloaders, subfonts, or man-page archaeology.
 
 ```bash
-./try.sh
+./try.sh                 # peerbot DENY — no host ports (safe default)
+./try.sh --allow loco    # open 8080 on 127.0.0.1 when you need it
 ```
 
 What that does:
 
 1. Builds (or reuses) the `inferno-os:dev` image
 2. Starts Inferno’s window manager / emulator
-3. Forwards **8080** (loco) and **9090** (grid) to your host
+3. **peerbot** keeps host ports closed unless you `--allow` a nickname
+
+Learn the tree first (`ls /dev`); open **loco** / **grid** only when that test needs them.
+Details: [PEERBOT.md](PEERBOT.md).
 
 Expert overrides:
 
 ```bash
-TRY_IMAGE=inferno-os:dev TRY_PORTS="8080:8080 9090:9090" ./try.sh
+TRY_IMAGE=inferno-os:dev ./try.sh --allow loco,grid
+TRY_PORTS="8080:8080" ./try.sh          # raw docker -p bypass
 docker run -it --rm inferno-os:dev emu -c1 sh   # shell only
 ```
 
@@ -43,7 +48,8 @@ When you want Inferno as something that **actually boots**:
 
 ```bash
 tools/bootable/build.sh --docker
-tools/bootable/run-qemu.sh
+tools/bootable/run-qemu.sh                 # peerbot DENY
+tools/bootable/run-qemu.sh --allow loco    # when testing local services
 ```
 
 You should see a welcome banner from `easyinit`, then a shell.

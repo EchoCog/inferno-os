@@ -11,14 +11,16 @@ another OS, or **native** with its own kernel and bootloader.
 ## Try it (Express path)
 
 ```bash
-./try.sh
+./try.sh                 # safe default: no host ports published
+./try.sh --allow loco    # open 8080 on loopback when you need it
 ```
 
-That builds (once) and runs hosted Inferno in Docker, with **8080** (loco)
-and **9090** (grid) forwarded to your machine.
+That builds (once) and runs hosted Inferno in Docker. **peerbot** keeps
+ports closed until you opt in by nickname (loco / grid / …).
 
 Plain-language guide: **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**  
 Name space first (devices as files): **[docs/NAMESPACE.md](docs/NAMESPACE.md)**  
+Port conscience (default deny): **[docs/PEERBOT.md](docs/PEERBOT.md)**  
 Port map everyone should know: **[docs/NETWORK_PORTS.md](docs/NETWORK_PORTS.md)**
 
 ## Bootable image (native kernel + bootloader)
