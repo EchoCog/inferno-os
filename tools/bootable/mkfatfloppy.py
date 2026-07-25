@@ -12,10 +12,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import os
 import struct
 import sys
-import time
 from pathlib import Path
 
 
@@ -114,7 +112,11 @@ class Fat12Image:
         buf[32:36] = putlong(VOLSECS)
         buf[36] = 0  # drive
         buf[38] = 0x29  # bootsig
-        buf[39:43] = putlong(int(time.time()) & 0xFFFFFFFF)
+        # Inferno PBS treats BPB "volid" as the absolute LBA of the root
+        # directory (see os/boot/pc/pbs.s and appl/cmd/disk/format.b),
+        # not a wall-clock volume serial. Root starts after reserved + FATs.
+        root_lba = 1 + 2 * self.fatsecs  # nresrv=1, nfats=2
+        buf[39:43] = putlong(root_lba)
         buf[43:54] = self.label.encode("ascii")
         buf[54:62] = b"FAT12   "
         buf[0x1FE] = 0x55

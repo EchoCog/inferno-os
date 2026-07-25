@@ -48,7 +48,11 @@ def main() -> int:
         # Root dir should mention HELLO and IEASY
         # Reserved(1) + 2*FATs; fatsecs from image BPB
         fatsecs = struct.unpack_from("<H", data, 22)[0]
-        root_off = 512 + 2 * fatsecs * 512
+        # PBS reads root via BPB volid (bytes 39-42) as absolute LBA
+        volid = struct.unpack_from("<I", data, 39)[0]
+        expect_root_lba = 1 + 2 * fatsecs
+        assert volid == expect_root_lba, (volid, expect_root_lba)
+        root_off = volid * 512
         root = data[root_off : root_off + 14 * 512]
         assert b"HELLO   TXT" in root
         assert b"IEASY      " in root
