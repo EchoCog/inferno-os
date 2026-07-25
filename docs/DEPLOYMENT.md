@@ -43,11 +43,13 @@ helm install inferno helm/inferno-cluster \
 
 The cluster consists of three core services:
 
-| Service | Description | Default Port |
-|---------|-------------|-------------|
-| **Registry** (`ndb/registry`) | Service discovery backbone using Styx protocol | 6675 |
-| **CPU Pool** (`grid/cpupool`) | Distributed compute workers | 6676 |
-| **Emulator** (`emu`) | Main Inferno OS instances | 6677 |
+| Service | Description | Default Port | Friendly alias |
+|---------|-------------|-------------|----------------|
+| **Registry** (`ndb/registry`) | Service discovery backbone using Styx protocol | 6675 | **grid 9090** |
+| **CPU Pool** (`grid/cpupool`) | Distributed compute workers | 6676 | — |
+| **Emulator** (`emu`) | Main Inferno OS instances | 6677 | **loco 8080** |
+
+Learn the local name space before the grid: [NAMESPACE.md](NAMESPACE.md). Port nicknames: [NETWORK_PORTS.md](NETWORK_PORTS.md).
 
 ```
                     ┌──────────────┐
