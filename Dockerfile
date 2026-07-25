@@ -62,6 +62,9 @@ RUN ./makemk.sh
 ENV PATH="$INFERNO/Linux/386/bin:${PATH}"
 RUN mk nuke
 RUN mk install
+# Root mkfile leaves appl/ commented out; build the Express first-run bits.
+RUN cd appl/wm && mk welcome.dis install
+RUN cd appl/cmd && mk myspace.dis install
 
 CMD ["emu", "-c1",  "wm/wm"]
 

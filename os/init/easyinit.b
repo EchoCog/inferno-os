@@ -89,6 +89,7 @@ banner()
 	print("  Standalone mode: your machine is a file tree.\n");
 	print("  Devices and processes live in the name space —\n");
 	print("  like an IDE where CPU/GPU were just files.\n");
+	print("  (Express path also has a graphic Welcome window.)\n");
 	print("\n");
 }
 

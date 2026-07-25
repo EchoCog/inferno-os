@@ -25,7 +25,8 @@ Inferno’s model. The window manager and Acme are optional clothing.
 
 ## Local tour (do this before “grid”)
 
-After Express (`./try.sh`) or Bootable (`easyinit` shell):
+After Express (`./try.sh` — dismiss Welcome, open Shell) or Bootable
+(`easyinit` console banner → shell):
 
 ```text
 ls /
@@ -41,6 +42,8 @@ and installed by hosted `mk install`):
 myspace
 myspace -v
 ```
+
+Express also offers **Help → Welcome** if you want the first-run tip card again.
 
 What you are looking at:
 

@@ -28,11 +28,12 @@ What that does:
 
 1. Builds (or reuses) the `inferno-os:dev` image
 2. Starts Inferno’s window manager / emulator
-3. **peerbot** keeps host ports closed; **learn.sh** unlocks nicknames in order
+3. Shows a one-time **Welcome** window (tree first; Help → Welcome to reopen)
+4. **peerbot** keeps host ports closed; **learn.sh** unlocks nicknames in order
 
-Learn the tree first (`ls /dev`); then learn what ports *do*; then open
-**loco** / **grid** only for the test at hand. Wider opens (`--public`,
-`--allow all`) stay locked until the tutorial says so.
+From the welcome (or Shell menu): run `myspace`, then `ls /dev`. Learn the
+tree before ports. Open **loco** / **grid** only for the test at hand.
+Wider opens (`--public`, `--allow all`) stay locked until the tutorial says so.
 Details: [PEERBOT.md](PEERBOT.md).
 
 Expert overrides:
@@ -55,7 +56,8 @@ tools/bootable/run-qemu.sh                 # peerbot DENY
 tools/bootable/run-qemu.sh --allow loco    # when testing local services
 ```
 
-You should see a welcome banner from `easyinit`, then a shell.
+You should see a console welcome banner from `easyinit`, then a shell
+(no window manager yet — that stays on the Express path).
 
 Under the hood:
 

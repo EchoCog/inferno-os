@@ -35,6 +35,7 @@ menu Charon			{wmrun charon}
 menu Manual			{wmrun wm/man}
 menu Files			{if {ftest -d $home} {wmrun wm/ftree $home} {wmrun wm/ftree /}}
 menu ''	''
+menu Help			'Welcome'		{if {ftest -f /dis/wm/welcome.dis} {wmrun wm/welcome}}
 menu System			'Debugger'		{wmrun wm/deb}
 menu System			'Module manager'	{wmrun wm/rt}
 menu System			'Task manager'		{wmrun wm/task}
@@ -48,5 +49,14 @@ menu Games			'Tetris'			{wmrun wm/tetris}
 menu Games			'Bounce'			{wmrun wm/bounce}
 #menu Games			'Game client'		{wmrun games/gameclient >/dev/null >[2=1]}
 #menu Games			'Game client (local)'	{wmrun games/gameclient -l > /dev/null >[2=1]}
+
+# First-run welcome once per session (Express path). Re-open via Help → Welcome.
+# Guard on the .dis so older images without welcome still start cleanly.
+if {! ftest -f /tmp/inferno-welcomed} {
+	echo > /tmp/inferno-welcomed
+	if {ftest -f /dis/wm/welcome.dis} {
+		wmrun wm/welcome
+	}
+}
 
 if {ftest -f $home/lib/wmsetup} {run $home/lib/wmsetup} {}
