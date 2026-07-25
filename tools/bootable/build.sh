@@ -93,6 +93,10 @@ export PATH="$HOST_BIN:$PATH"
 echo "==> Bootloader (9load, mbr, pbs)"
 (cd "$ROOT/os/boot/pc" && mk install)
 
+# myspace is listed in os/pc/easy root; mkroot needs dis/myspace.dis present.
+echo "==> myspace (name-space tour for easy root)"
+(cd "$ROOT/appl/cmd" && mk myspace.dis install)
+
 echo "==> Easy kernel (standalone first-boot)"
 (cd "$ROOT/os/pc" && mk CONF=easy install)
 

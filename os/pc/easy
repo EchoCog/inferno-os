@@ -6,8 +6,9 @@
 #   - prints a friendly console banner (easyinit)
 #   - works under QEMU with rtl8139 or pcnet NIC
 #   - keeps a small embedded root for first-run demos
+#   - includes myspace for the guided name-space tour
 #
-# Build:  cd os/pc && mk CONF=easy install
+# Build:  (cd appl/cmd && mk myspace.dis install) && cd os/pc && mk CONF=easy install
 # Image:  tools/bootable/mkbootimg.sh
 #
 
@@ -125,6 +126,7 @@ root
 	/dis/pwd.dis
 	/dis/echo.dis
 	/dis/cd.dis
+	/dis/myspace.dis
 	/dis/lib/bufio.dis
 	/dis/lib/string.dis
 	/dis/lib/readdir.dis

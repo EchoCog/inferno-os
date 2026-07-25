@@ -51,8 +51,11 @@ RUN ./makemk.sh
 ENV PATH="$INFERNO/Linux/386/bin:${PATH}"
 RUN mk nuke && mk install
 
-# Native PC boot bits (cross-compiled with Inferno's own suite)
+# Native PC boot bits (cross-compiled with Inferno's own suite).
+# Root mkfile leaves appl/ commented out, so build myspace explicitly
+# before the easy kernel embeds /dis/myspace.dis in its root.
 RUN cd os/boot/pc && mk install
+RUN cd appl/cmd && mk myspace.dis install
 RUN cd os/pc && mk CONF=easy install
 
 RUN mkdir -p /out \
