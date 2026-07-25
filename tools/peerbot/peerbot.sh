@@ -85,8 +85,13 @@ parse_allow_flag() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --allow)
-        ALLOW_RAW="${2:-none}"
-        shift 2
+        if [[ $# -ge 2 ]]; then
+          ALLOW_RAW="$2"
+          shift 2
+        else
+          ALLOW_RAW="none"
+          shift
+        fi
         ;;
       --allow=*)
         ALLOW_RAW="${1#*=}"

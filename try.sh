@@ -20,8 +20,13 @@ PASS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --allow)
-      ALLOW="${2:-none}"
-      shift 2
+      if [[ $# -ge 2 ]]; then
+        ALLOW="$2"
+        shift 2
+      else
+        ALLOW="none"
+        shift
+      fi
       ;;
     --allow=*)
       ALLOW="${1#*=}"
@@ -77,8 +82,9 @@ fi
 
 # Compat: TRY_PORTS still works for experts, but peerbot is preferred.
 port_args=()
+TRY_PORTS_OVERRIDE=0
 if [[ -n "${TRY_PORTS:-}" ]]; then
-  echo "peerbot: TRY_PORTS override in effect (expert — tutorial bypass)"
+  TRY_PORTS_OVERRIDE=1
   for spec in $TRY_PORTS; do
     port_args+=(-p "$spec")
   done
@@ -95,7 +101,27 @@ fi
 
 echo "Starting Inferno (Express path)"
 echo "  image: $IMAGE"
-"$PEERBOT" status --allow "$ALLOW"
+if [[ "$TRY_PORTS_OVERRIDE" == "1" ]]; then
+  echo "peerbot policy: TRY_PORTS override (expert — tutorial bypass)"
+  echo "  published on host (raw docker -p):"
+  if [[ ${#port_args[@]} -eq 0 ]]; then
+    echo "    (none)"
+  else
+    i=0
+    while [[ $i -lt ${#port_args[@]} ]]; do
+      if [[ "${port_args[$i]}" == "-p" ]]; then
+        i=$((i + 1))
+        echo "    -p ${port_args[$i]}"
+      else
+        echo "    ${port_args[$i]}"
+      fi
+      i=$((i + 1))
+    done
+  fi
+  echo "  note: nickname status skipped; these mappings are what Docker will publish"
+else
+  "$PEERBOT" status --allow "$ALLOW"
+fi
 echo "  docs:  docs/GETTING_STARTED.md  docs/PEERBOT.md  docs/NAMESPACE.md"
 echo
 echo "Tip: name space first →  ls /dev   then later  ./try.sh --allow loco"

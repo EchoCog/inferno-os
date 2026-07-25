@@ -18,8 +18,13 @@ MEM="${QEMU_MEM:-256M}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --allow)
-      ALLOW="${2:-none}"
-      shift 2
+      if [[ $# -ge 2 ]]; then
+        ALLOW="$2"
+        shift 2
+      else
+        ALLOW="none"
+        shift
+      fi
       ;;
     --allow=*)
       ALLOW="${1#*=}"
