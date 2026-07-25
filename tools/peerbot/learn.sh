@@ -88,9 +88,8 @@ EOF
       echo "  Not yet. loco is 8080. Re-run learn.sh when ready."
       exit 1
     fi
-    peerbot_set_level 1
-    echo "  ✓ Level 1 unlocked — you may:  ./try.sh --allow loco"
-    level=1
+    peerbot_unlock 1 "you may:  ./try.sh --allow loco" || exit $?
+    level=$(peerbot_get_level)
   fi
 
   # --- Level 2: grid ---
@@ -115,9 +114,8 @@ EOF
       echo "  Not yet. grid is 9090. Re-run learn.sh when ready."
       exit 1
     fi
-    peerbot_set_level 2
-    echo "  ✓ Level 2 unlocked — you may:  ./try.sh --allow loco,grid"
-    level=2
+    peerbot_unlock 2 "you may:  ./try.sh --allow loco,grid" || exit $?
+    level=$(peerbot_get_level)
   fi
 
   # --- Level 3: self / host / guest ---
@@ -153,9 +151,8 @@ EOF
       echo "  Not yet. Use --public for 0.0.0.0. Re-run learn.sh when ready."
       exit 1
     fi
-    peerbot_set_level 3
-    echo "  ✓ Level 3 unlocked — you may:  ./try.sh --allow loco --public"
-    level=3
+    peerbot_unlock 3 "you may:  ./try.sh --allow loco --public" || exit $?
+    level=$(peerbot_get_level)
   fi
 
   # --- Level 4: expert / general ---
@@ -182,9 +179,8 @@ EOF
       peerbot_level_help
       exit 0
     fi
-    peerbot_set_level 4
-    echo "  ✓ Level 4 unlocked — expert publishes allowed. Be kind to your future self."
-    level=4
+    peerbot_unlock 4 "expert publishes allowed. Be kind to your future self." || exit $?
+    level=$(peerbot_get_level)
   fi
 
   echo

@@ -17,6 +17,18 @@ peerbot_progress_file() {
   echo "$base/peerbot.level"
 }
 
+# True when progress is pinned by env (must match peerbot_get_level).
+# PEERBOT_EXPERT=0 means "not expert" and does *not* override the file.
+peerbot_env_pins_level() {
+  if [[ -n "${PEERBOT_EXPERT:-}" && "${PEERBOT_EXPERT}" != "0" ]]; then
+    return 0
+  fi
+  if [[ -n "${PEERBOT_LEVEL:-}" ]]; then
+    return 0
+  fi
+  return 1
+}
+
 peerbot_get_level() {
   if [[ -n "${PEERBOT_EXPERT:-}" && "${PEERBOT_EXPERT}" != "0" ]]; then
     echo 4
@@ -37,14 +49,16 @@ peerbot_get_level() {
   fi
 }
 
+# Persist learning progress.
+# Returns: 0 ok (written or already at level), 2 skipped (env pins level).
 peerbot_set_level() {
   local want="$1" cur f
-  cur=$(peerbot_get_level)
-  # never lower an expert env override via file write confusion
-  if [[ -n "${PEERBOT_LEVEL:-}" || -n "${PEERBOT_EXPERT:-}" ]]; then
-    echo "peerbot: level is overridden by env (PEERBOT_LEVEL/PEERBOT_EXPERT); not writing file" >&2
-    return 0
+  if peerbot_env_pins_level; then
+    echo "peerbot: level is pinned by env (PEERBOT_LEVEL / PEERBOT_EXPERT); not writing file" >&2
+    echo "peerbot: unset those to save tutorial progress" >&2
+    return 2
   fi
+  cur=$(peerbot_get_level)
   if [[ "$want" -le "$cur" ]]; then
     return 0
   fi
@@ -52,6 +66,28 @@ peerbot_set_level() {
   mkdir -p "$(dirname "$f")"
   echo "$want" >"$f"
   echo "peerbot: progress → level $want  ($f)"
+}
+
+# After a lesson: persist want, re-read level, succeed only if level >= want.
+# Prints unlock line on success. Exits the caller shell on failure when used
+# as:  peerbot_unlock 1 "message" || exit $?
+peerbot_unlock() {
+  local want="$1" msg="$2" rc=0 cur
+  peerbot_set_level "$want" || rc=$?
+  if [[ $rc -eq 2 ]]; then
+    echo "  Progress not saved — env override is active." >&2
+    peerbot_level_help >&2
+    return 2
+  elif [[ $rc -ne 0 ]]; then
+    return "$rc"
+  fi
+  cur=$(peerbot_get_level)
+  if [[ "$cur" -lt "$want" ]]; then
+    echo "  Progress check failed (level $cur < $want)." >&2
+    return 1
+  fi
+  echo "  ✓ Level $want unlocked — $msg"
+  return 0
 }
 
 # Return 0 if allow-list + public flag are permitted at current level.
