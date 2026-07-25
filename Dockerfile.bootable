@@ -61,8 +61,10 @@ RUN mkdir -p /out \
 
 FROM scratch AS export
 COPY --from=hosted /out/inferno-boot.img /inferno-boot.img
+COPY --from=hosted /out/inferno-hd.img /inferno-hd.img
 
 # Default final stage keeps a tiny shell environment for docker cp convenience
 FROM alpine:3.20
 COPY --from=hosted /out/inferno-boot.img /out/inferno-boot.img
-CMD ["echo", "image at /out/inferno-boot.img — use tools/bootable/build.sh --docker"]
+COPY --from=hosted /out/inferno-hd.img /out/inferno-hd.img
+CMD ["echo", "images at /out/inferno-{boot,hd}.img — use tools/bootable/build.sh --docker"]
