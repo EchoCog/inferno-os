@@ -16,7 +16,6 @@ from __future__ import annotations
 import argparse
 import struct
 import sys
-import time
 from pathlib import Path
 
 SECTOR = 512
@@ -139,7 +138,10 @@ class Fat16Partition:
         buf[32:36] = putlong(self.nsectors)
         buf[36] = 0x80
         buf[38] = 0x29
-        buf[39:43] = putlong(int(time.time()) & 0xFFFFFFFF)
+        # Inferno PBS/pbslba treats BPB "volid" as the absolute LBA of the
+        # root directory (appl/cmd/disk/format.b: offset+nfats*fatsecs+nresrv).
+        root_lba = self.hidden + self.reserved + self.nfats * self.fatsecs
+        buf[39:43] = putlong(root_lba)
         buf[43:54] = self.label.encode("ascii")
         buf[54:62] = b"FAT16   "
         buf[0x1FE] = 0x55
