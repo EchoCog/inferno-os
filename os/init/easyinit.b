@@ -115,7 +115,8 @@ hints()
 	print("    0.0.0.0         host   — accept from all guests\n");
 	print("    255.255.255.255 guest  — speak to all hosts\n");
 	print("\n");
-	print("  Docs: docs/NAMESPACE.md  docs/GETTING_STARTED.md\n");
+	print("  Host ports stay closed until you ask (peerbot).\n");
+	print("  Docs: docs/NAMESPACE.md  docs/PEERBOT.md\n");
 	print("\n");
 }
 

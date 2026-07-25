@@ -23,7 +23,8 @@ BIOS → PBS → 9load → plan9.ini → ieasy → easyinit → shell
 ```bash
 # One-shot via Docker (recommended if you do not have a hosted build yet)
 tools/bootable/build.sh --docker
-tools/bootable/run-qemu.sh
+tools/bootable/run-qemu.sh                 # peerbot DENY — no hostfwd
+tools/bootable/run-qemu.sh --allow loco    # open 8080 on loopback when testing
 
 # Hard-disk style image (MBR + FAT16 partition)
 tools/bootable/mkbootimg.sh --hd
