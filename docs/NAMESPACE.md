@@ -34,10 +34,12 @@ ls /prog
 ls /net
 ```
 
-Or run the guided tour (hosted build / full image):
+Or run the guided tour (embedded in the easy/bootable kernel root,
+and installed by hosted `mk install`):
 
 ```text
 myspace
+myspace -v
 ```
 
 What you are looking at:

@@ -51,8 +51,11 @@ RUN ./makemk.sh
 ENV PATH="$INFERNO/Linux/386/bin:${PATH}"
 RUN mk nuke && mk install
 
-# Native PC boot bits (cross-compiled with Inferno's own suite)
+# Native PC boot bits (cross-compiled with Inferno's own suite).
+# Root mkfile leaves appl/ commented out, so build myspace explicitly
+# before the easy kernel embeds /dis/myspace.dis in its root.
 RUN cd os/boot/pc && mk install
+RUN cd appl/cmd && mk myspace.dis install
 RUN cd os/pc && mk CONF=easy install
 
 RUN mkdir -p /out \
@@ -61,8 +64,10 @@ RUN mkdir -p /out \
 
 FROM scratch AS export
 COPY --from=hosted /out/inferno-boot.img /inferno-boot.img
+COPY --from=hosted /out/inferno-hd.img /inferno-hd.img
 
 # Default final stage keeps a tiny shell environment for docker cp convenience
 FROM alpine:3.20
 COPY --from=hosted /out/inferno-boot.img /out/inferno-boot.img
-CMD ["echo", "image at /out/inferno-boot.img — use tools/bootable/build.sh --docker"]
+COPY --from=hosted /out/inferno-hd.img /out/inferno-hd.img
+CMD ["echo", "images at /out/inferno-{boot,hd}.img — use tools/bootable/build.sh --docker"]

@@ -33,15 +33,36 @@ for arg in "$@"; do
 done
 
 if [[ "$USE_DOCKER" == "1" ]]; then
-  echo "==> Building bootable image via Docker"
+  echo "==> Building bootable image via Docker ($IMG_MODE)"
   docker build -f "$ROOT/Dockerfile.bootable" -t inferno-os:bootable "$ROOT"
   mkdir -p "$ROOT/tools/bootable/dist"
-  docker create --name inferno-boot-copy inferno-os:bootable
-  docker cp inferno-boot-copy:/out/inferno-boot.img "$ROOT/tools/bootable/dist/inferno-boot.img" || true
-  docker cp inferno-boot-copy:/out/inferno-hd.img "$ROOT/tools/bootable/dist/inferno-hd.img" || true
-  docker rm inferno-boot-copy
-  echo "Images under tools/bootable/dist/"
-  echo "Run:   tools/bootable/run-qemu.sh tools/bootable/dist/inferno-boot.img"
+  cid=$(docker create inferno-os:bootable)
+  cleanup() { docker rm -f "$cid" >/dev/null 2>&1 || true; }
+  trap cleanup EXIT
+
+  # Image builds both artifacts; export the one matching --floppy/--hd,
+  # and always leave the other available when present.
+  if [[ "$IMG_MODE" == "hd" ]]; then
+    docker cp "$cid:/out/inferno-hd.img" "$ROOT/tools/bootable/dist/inferno-hd.img"
+    docker cp "$cid:/out/inferno-boot.img" "$ROOT/tools/bootable/dist/inferno-boot.img" 2>/dev/null || true
+    cleanup
+    trap - EXIT
+    echo
+    echo "Done (docker / hd)."
+    echo "  Image: tools/bootable/dist/inferno-hd.img"
+    echo "  Boot:  tools/bootable/run-qemu.sh tools/bootable/dist/inferno-hd.img"
+  else
+    docker cp "$cid:/out/inferno-boot.img" "$ROOT/tools/bootable/dist/inferno-boot.img"
+    docker cp "$cid:/out/inferno-hd.img" "$ROOT/tools/bootable/dist/inferno-hd.img" 2>/dev/null || true
+    cleanup
+    trap - EXIT
+    echo
+    echo "Done (docker / floppy)."
+    echo "  Image: tools/bootable/dist/inferno-boot.img"
+    echo "  Boot:  tools/bootable/run-qemu.sh tools/bootable/dist/inferno-boot.img"
+    echo "  HD:    tools/bootable/build.sh --docker --hd"
+  fi
+  echo "  Docs:  docs/GETTING_STARTED.md  docs/BOOTABLE.md"
   exit 0
 fi
 
@@ -71,6 +92,10 @@ export PATH="$HOST_BIN:$PATH"
 
 echo "==> Bootloader (9load, mbr, pbs)"
 (cd "$ROOT/os/boot/pc" && mk install)
+
+# myspace is listed in os/pc/easy root; mkroot needs dis/myspace.dis present.
+echo "==> myspace (name-space tour for easy root)"
+(cd "$ROOT/appl/cmd" && mk myspace.dis install)
 
 echo "==> Easy kernel (standalone first-boot)"
 (cd "$ROOT/os/pc" && mk CONF=easy install)
