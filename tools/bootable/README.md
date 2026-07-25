@@ -27,11 +27,12 @@ tools/bootable/run-qemu.sh                 # peerbot DENY — no hostfwd
 tools/bootable/run-qemu.sh --allow loco    # open 8080 on loopback when testing
 
 # Hard-disk style image (MBR + FAT16 partition)
-tools/bootable/mkbootimg.sh --hd
+tools/bootable/build.sh --docker --hd
 tools/bootable/run-qemu.sh tools/bootable/dist/inferno-hd.img
 
 # Or, with a local hosted toolchain already installed:
 tools/bootable/build.sh
+tools/bootable/build.sh --hd
 tools/bootable/run-qemu.sh
 ```
 
