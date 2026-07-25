@@ -2,6 +2,7 @@
 
 OBJ=\
 	wminit.dis\
+	easyinit.dis\
 
 all:V:	$OBJ
 install:V: all

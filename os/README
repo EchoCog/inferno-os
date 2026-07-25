@@ -22,6 +22,7 @@ fads	power	MPC8xx FADS development board
 mpc	power	code common to ports to Motorola MPC8xx boards
 
 pc	386	basis for ports to various PC-based platforms
+		configs: pc, pcdisk (classic); easy (standalone QEMU/first-boot — see tools/bootable/)
 
 #			basic Inferno native kernel components
 port	common	native operating system components
