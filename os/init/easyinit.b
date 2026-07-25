@@ -74,7 +74,7 @@ init()
 		print("init: load /dis/sh.dis: %r\n");
 		exit;
 	}
-	print("Starting shell.  Try:  ls /dev    ls /prog    cat /dev/sysname\n\n");
+	print("Starting shell.  Try:  myspace    ls /dev    cat /dev/sysname\n\n");
 	shell->init(nil, "/dis/sh.dis" :: nil);
 	print("shell exited\n");
 }
