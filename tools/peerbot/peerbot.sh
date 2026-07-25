@@ -3,10 +3,12 @@
 #
 # Block all host publishes unless there is a good reason for the
 # thing you are currently testing. Nicknames, not raw port soup.
+# Broader assignments unlock via tools/peerbot/learn.sh
 #
 #   tools/peerbot/peerbot.sh list
 #   tools/peerbot/peerbot.sh why loco
-#   tools/peerbot/peerbot.sh status --allow none
+#   tools/peerbot/peerbot.sh level
+#   tools/peerbot/peerbot.sh status [--allow none|loco|loco,grid|all]
 #   tools/peerbot/peerbot.sh docker-args --allow loco
 #   tools/peerbot/peerbot.sh qemu-fwds --allow loco,grid
 #
@@ -14,6 +16,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CATALOG="${PEERBOT_CATALOG:-$ROOT/tools/peerbot/ports.catalog}"
+# shellcheck disable=SC1091
+source "$ROOT/tools/peerbot/progress.sh"
 
 die() { echo "peerbot: $*" >&2; exit 2; }
 
@@ -23,13 +27,18 @@ peerbot — default DENY host ports; open only what this test needs
 
   peerbot list
   peerbot why <name>
+  peerbot level
   peerbot status [--allow none|loco|loco,grid|all]
   peerbot docker-args [--allow ...]   # prints docker -p argv lines
   peerbot qemu-fwds [--allow ...]     # prints hostfwd=... CSV (or empty)
 
+Learning gate:
+  tools/peerbot/learn.sh     # unlock loco → grid → --public → expert
+
 Env:
-  PEERBOT_PUBLIC=1   bind 0.0.0.0 instead of 127.0.0.1 (loud choice)
+  PEERBOT_PUBLIC=1   bind 0.0.0.0 instead of 127.0.0.1 (needs level 3)
   PEERBOT_ALLOW=...  default for --allow when omitted
+  PEERBOT_EXPERT=1   skip gates (you own the blast radius)
 EOF
 }
 
@@ -70,16 +79,17 @@ normalize_allow() {
   echo "$raw"
 }
 
+# Sets ALLOW_RAW (as requested) and ALLOW_NORM (expanded)
 parse_allow_flag() {
-  ALLOW_OUT="${PEERBOT_ALLOW:-none}"
+  ALLOW_RAW="${PEERBOT_ALLOW:-none}"
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --allow)
-        ALLOW_OUT="${2:-none}"
+        ALLOW_RAW="${2:-none}"
         shift 2
         ;;
       --allow=*)
-        ALLOW_OUT="${1#*=}"
+        ALLOW_RAW="${1#*=}"
         shift
         ;;
       *)
@@ -87,7 +97,20 @@ parse_allow_flag() {
         ;;
     esac
   done
-  normalize_allow "$ALLOW_OUT"
+  ALLOW_NORM=$(normalize_allow "$ALLOW_RAW")
+  echo "$ALLOW_NORM"
+}
+
+gate_or_die() {
+  local allow_raw="$1"
+  local public="${PEERBOT_PUBLIC:-0}"
+  # Gate on the user-facing request (so "all" is visible), not expansion
+  local gate_list="$allow_raw"
+  gate_list="${gate_list:-none}"
+  if [[ "$gate_list" == "none" || "$gate_list" == "off" || "$gate_list" == "deny" ]]; then
+    gate_list=""
+  fi
+  peerbot_check_gate "$gate_list" "$public" || exit 1
 }
 
 cmd_list() {
@@ -101,7 +124,7 @@ cmd_list() {
     printf '%-10s %6s  %s\n' "$name" "$port" "$reason"
   done < <(catalog_lines)
   echo
-  echo "Default: DENY. Example:  ./try.sh --allow loco"
+  echo "Default: DENY. Unlock publishes with:  tools/peerbot/learn.sh"
 }
 
 cmd_why() {
@@ -122,11 +145,13 @@ EOF
 cmd_status() {
   local allow
   allow=$(parse_allow_flag "$@")
+  peerbot_level_help
+  echo
   echo "peerbot policy: DEFAULT DENY"
   if [[ -z "$allow" ]]; then
     echo "  published on host: (none)"
     echo "  self boundary only — good for learning the name space"
-    echo "  open something:  --allow loco   or   --allow loco,grid"
+    echo "  unlock + open:  tools/peerbot/learn.sh   then   --allow loco"
     return
   fi
   if [[ "${PEERBOT_PUBLIC:-0}" == "1" ]]; then
@@ -147,8 +172,9 @@ cmd_status() {
 }
 
 cmd_docker_args() {
-  local allow
-  allow=$(parse_allow_flag "$@")
+  parse_allow_flag "$@" >/dev/null
+  gate_or_die "$ALLOW_RAW"
+  local allow="$ALLOW_NORM"
   [[ -n "$allow" ]] || return 0
   IFS=',' read -ra names <<<"$allow"
   for name in "${names[@]}"; do
@@ -166,8 +192,9 @@ cmd_docker_args() {
 }
 
 cmd_qemu_fwds() {
-  local allow
-  allow=$(parse_allow_flag "$@")
+  parse_allow_flag "$@" >/dev/null
+  gate_or_die "$ALLOW_RAW"
+  local allow="$ALLOW_NORM"
   local fwds=()
   if [[ -n "$allow" ]]; then
     IFS=',' read -ra names <<<"$allow"
@@ -198,6 +225,7 @@ case "$CMD" in
   ""|-h|--help) usage ;;
   list) cmd_list ;;
   why) cmd_why "${1:-}" ;;
+  level) peerbot_level_help ;;
   status) cmd_status "$@" ;;
   docker-args) cmd_docker_args "$@" ;;
   qemu-fwds) cmd_qemu_fwds "$@" ;;

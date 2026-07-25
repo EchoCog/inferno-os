@@ -32,12 +32,41 @@ Perfect for the first lesson: `ls /dev`, `ls /prog`
 
 ---
 
+## Tutorial before wider opens
+
+A beginner should understand what a port *does* before peerbot allows
+more general assignments. Levels unlock in order:
+
+```bash
+tools/peerbot/learn.sh          # interactive lessons + checks
+tools/peerbot/learn.sh status   # where you are
+tools/peerbot/peerbot.sh level
+```
+
+| Level | Unlocks | Meaning |
+|-------|---------|---------|
+| 0 | (deny only) | explore name space; no host publishes |
+| 1 | `--allow loco` | you know 8080 = local services |
+| 2 | `--allow grid` | you know 9090 = shared fabric |
+| 3 | `--public` | you know 0.0.0.0 accepts all guests |
+| 4 | `--allow all` / 667x | expert cluster ports |
+
+Trying to jump ahead:
+
+```text
+peerbot: opening 'loco' (8080) needs level 1 — know what loco does first.
+  Run:  tools/peerbot/learn.sh
+```
+
+Expert escape (intentional): `PEERBOT_EXPERT=1` — you own the blast radius.
+
 ## Open only what this test needs
 
 ```bash
-./try.sh --allow loco              # 8080 on 127.0.0.1
-./try.sh --allow loco,grid         # 8080 + 9090 on loopback
-./try.sh --allow loco --public     # 0.0.0.0 — you meant "global host"
+tools/peerbot/learn.sh                 # once (progressive)
+./try.sh --allow loco                  # 8080 on 127.0.0.1
+./try.sh --allow loco,grid             # 8080 + 9090 on loopback
+./try.sh --allow loco --public         # 0.0.0.0 — you meant "global host"
 
 tools/bootable/run-qemu.sh --allow grid
 ```
@@ -93,6 +122,6 @@ it is intentional.
 
 ## Teaching sentence
 
-> **Closed until proven necessary.  
-> Open by nickname for this test.  
+> **Closed until you can explain the port.  
+> Learn → nickname → this test only.  
 > Loopback first; 0.0.0.0 only when guests must arrive.**

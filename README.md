@@ -11,12 +11,13 @@ another OS, or **native** with its own kernel and bootloader.
 ## Try it (Express path)
 
 ```bash
-./try.sh                 # safe default: no host ports published
-./try.sh --allow loco    # open 8080 on loopback when you need it
+./try.sh                      # safe default: no host ports published
+tools/peerbot/learn.sh        # understand ports before wider opens
+./try.sh --allow loco         # 8080 on loopback (after level 1)
 ```
 
 That builds (once) and runs hosted Inferno in Docker. **peerbot** keeps
-ports closed until you opt in by nickname (loco / grid / …).
+ports closed; a short tutorial unlocks loco → grid → `--public` → expert.
 
 Plain-language guide: **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**  
 Name space first (devices as files): **[docs/NAMESPACE.md](docs/NAMESPACE.md)**  

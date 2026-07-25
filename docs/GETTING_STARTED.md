@@ -19,17 +19,20 @@ This is the welcoming front door. You get a full Inferno environment
 (`emu`) without touching bootloaders, subfonts, or man-page archaeology.
 
 ```bash
-./try.sh                 # peerbot DENY — no host ports (safe default)
-./try.sh --allow loco    # open 8080 on 127.0.0.1 when you need it
+./try.sh                      # peerbot DENY — no host ports (safe default)
+tools/peerbot/learn.sh        # short tutorial: what loco/grid/self mean
+./try.sh --allow loco         # only after level 1 — 8080 on 127.0.0.1
 ```
 
 What that does:
 
 1. Builds (or reuses) the `inferno-os:dev` image
 2. Starts Inferno’s window manager / emulator
-3. **peerbot** keeps host ports closed unless you `--allow` a nickname
+3. **peerbot** keeps host ports closed; **learn.sh** unlocks nicknames in order
 
-Learn the tree first (`ls /dev`); open **loco** / **grid** only when that test needs them.
+Learn the tree first (`ls /dev`); then learn what ports *do*; then open
+**loco** / **grid** only for the test at hand. Wider opens (`--public`,
+`--allow all`) stay locked until the tutorial says so.
 Details: [PEERBOT.md](PEERBOT.md).
 
 Expert overrides:

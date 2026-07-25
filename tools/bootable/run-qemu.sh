@@ -34,8 +34,9 @@ while [[ $# -gt 0 ]]; do
 Usage: tools/bootable/run-qemu.sh [--allow none|loco|...] [--public] [image.img]
 
   Default: no host port forwards (peerbot DENY).
-  --allow loco       forward 8080 on 127.0.0.1
-  --allow loco,grid  forward 8080 and 9090
+  --allow loco       forward 8080 (needs learn level 1)
+  --allow loco,grid  forward 8080+9090 (needs level 2)
+  Unlock: tools/peerbot/learn.sh
 
 EOF
       "$PEERBOT" list
@@ -71,7 +72,10 @@ if [[ -z "$media" ]]; then
   fi
 fi
 
-fwds=$("$PEERBOT" qemu-fwds --allow "$ALLOW")
+if ! fwds=$("$PEERBOT" qemu-fwds --allow "$ALLOW"); then
+  echo "hint: tools/peerbot/learn.sh" >&2
+  exit 1
+fi
 netdev="user,id=n0"
 if [[ -n "$fwds" ]]; then
   netdev="$netdev,$fwds"

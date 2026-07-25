@@ -36,9 +36,11 @@ while [[ $# -gt 0 ]]; do
 Usage: ./try.sh [--allow none|loco|loco,grid|...] [--public] [emu args...]
 
   Default: peerbot DENY (no -p publishes). Learn /dev /prog first.
-  --allow loco       publish 8080 on 127.0.0.1
-  --allow loco,grid  publish 8080 and 9090 on 127.0.0.1
-  --public           bind 0.0.0.0 instead of loopback (careful)
+  --allow loco       publish 8080 on 127.0.0.1 (needs learn level 1)
+  --allow loco,grid  publish 8080 and 9090     (needs level 2)
+  --public           bind 0.0.0.0              (needs level 3)
+
+  Unlock levels:  tools/peerbot/learn.sh
 
 EOF
       "$PEERBOT" list
@@ -76,15 +78,19 @@ fi
 # Compat: TRY_PORTS still works for experts, but peerbot is preferred.
 port_args=()
 if [[ -n "${TRY_PORTS:-}" ]]; then
-  echo "peerbot: TRY_PORTS override in effect (expert)"
+  echo "peerbot: TRY_PORTS override in effect (expert — tutorial bypass)"
   for spec in $TRY_PORTS; do
     port_args+=(-p "$spec")
   done
 else
+  if ! port_out=$("$PEERBOT" docker-args --allow "$ALLOW"); then
+    echo "hint: tools/peerbot/learn.sh" >&2
+    exit 1
+  fi
   while IFS= read -r line; do
     [[ -n "$line" ]] || continue
     port_args+=("$line")
-  done < <("$PEERBOT" docker-args --allow "$ALLOW")
+  done <<<"$port_out"
 fi
 
 echo "Starting Inferno (Express path)"
