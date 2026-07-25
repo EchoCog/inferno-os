@@ -57,6 +57,16 @@ def main() -> int:
         part = data[part_lba * 512 :]
         assert part[0:3] == b"\xEB\x3C\x90"
         assert part[54:62] == b"FAT16   "
+        # PBS/pbslba: volid must be absolute LBA of root directory
+        reserved = struct.unpack_from("<H", part, 14)[0]
+        nfats = part[16]
+        fatsecs = struct.unpack_from("<H", part, 22)[0]
+        volid = struct.unpack_from("<I", part, 39)[0]
+        expect_root_lba = part_lba + reserved + nfats * fatsecs
+        assert volid == expect_root_lba, (volid, expect_root_lba)
+        root = data[volid * 512 : volid * 512 + 16 * 512]
+        assert b"9LOAD      " in root
+        assert b"IEASY      " in root
         print("ok: mkfathd smoke test passed")
     return 0
 
