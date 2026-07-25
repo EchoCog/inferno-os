@@ -1,0 +1,12 @@
+# peerbot port catalog
+# name | port | role | good_reason (when opening is justified)
+#
+# Default policy: DENY. Open only what the current test needs.
+# See docs/PEERBOT.md
+
+loco     | 8080 | local services on this machine          | testing loco / local Styx or HTTP on this host
+grid     | 9090 | shared / distributed fabric             | testing registry discovery or multi-node glue
+registry | 6675 | classic Styx registry (cluster internal)| debugging k8s registry (prefer grid alias)
+cpupool  | 6676 | classic CPU pool (cluster internal)     | debugging workers (expert)
+emulator | 6677 | classic emu Styx (cluster internal)     | debugging emu (prefer loco alias)
+metrics  | 9100 | prometheus metrics                      | scraping while validating monitoring

@@ -1,0 +1,68 @@
+# Native bootable Inferno image builder.
+# Produces /out/inferno-boot.img (FAT12 floppy: 9load + plan9.ini + ieasy).
+#
+#   docker build -f Dockerfile.bootable -t inferno-os:bootable .
+#   tools/bootable/build.sh --docker
+#
+# Stage 1 reuses the hosted toolchain build; stage 2 cross-builds the
+# PC bootloader + easy kernel and assembles the floppy image.
+
+FROM i386/ubuntu:devel AS hosted
+
+ARG FREETYPE_VERSION=2.13.2
+ARG FREETYPE_SHA256=12991c4e55c506dd7f9b765933e62fd2be2e06d421505d7950a132e4f1bb484d
+
+RUN apt-get -y update && apt-get install -y --no-install-recommends \
+	libx11-dev \
+	libxext-dev \
+	libc6-dev \
+	gcc \
+	curl \
+	xz-utils \
+	python3 \
+	ca-certificates \
+	&& rm -rf /var/lib/apt/lists/*
+
+ENV INFERNO=/usr/inferno
+COPY . $INFERNO
+WORKDIR $INFERNO
+
+RUN curl -L "https://download.savannah.gnu.org/releases/freetype/freetype-${FREETYPE_VERSION}.tar.xz" \
+        -o /tmp/freetype.tar.xz \
+    && echo "${FREETYPE_SHA256}  /tmp/freetype.tar.xz" | sha256sum -c - \
+    && tar xf /tmp/freetype.tar.xz -C libfreetype \
+    && mv "libfreetype/freetype-${FREETYPE_VERSION}" libfreetype/libfreetype \
+    && cp include/freetype/config/ftoption.h  libfreetype/libfreetype/include/freetype/config/ftoption.h \
+    && cp include/freetype/config/ftmodule.h  libfreetype/libfreetype/include/freetype/config/ftmodule.h \
+    && rm /tmp/freetype.tar.xz
+
+RUN printf '%s\n' \
+	"ROOT=$INFERNO" \
+	"TKSTYLE=std" \
+	"SYSHOST=Linux" \
+	"SYSTARG=Linux" \
+	"OBJTYPE=386" \
+	'OBJDIR=$SYSTARG/$OBJTYPE' \
+	'<$ROOT/mkfiles/mkhost-$SYSHOST' \
+	'<$ROOT/mkfiles/mkfile-$SYSTARG-$OBJTYPE' \
+	> mkconfig
+
+RUN ./makemk.sh
+ENV PATH="$INFERNO/Linux/386/bin:${PATH}"
+RUN mk nuke && mk install
+
+# Native PC boot bits (cross-compiled with Inferno's own suite)
+RUN cd os/boot/pc && mk install
+RUN cd os/pc && mk CONF=easy install
+
+RUN mkdir -p /out \
+ && tools/bootable/mkbootimg.sh --floppy /out/inferno-boot.img \
+ && tools/bootable/mkbootimg.sh --hd /out/inferno-hd.img
+
+FROM scratch AS export
+COPY --from=hosted /out/inferno-boot.img /inferno-boot.img
+
+# Default final stage keeps a tiny shell environment for docker cp convenience
+FROM alpine:3.20
+COPY --from=hosted /out/inferno-boot.img /out/inferno-boot.img
+CMD ["echo", "image at /out/inferno-boot.img — use tools/bootable/build.sh --docker"]

@@ -17,6 +17,11 @@ spec:
       port: 6675
       targetPort: styx
       protocol: TCP
+    # Friendly alias: grid = shared / distributed discovery fabric
+    - name: grid
+      port: 9090
+      targetPort: styx
+      protocol: TCP
     - name: metrics
       port: 9100
       targetPort: metrics

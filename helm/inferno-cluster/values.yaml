@@ -74,6 +74,12 @@ cpupool:
     targetCPUUtilization: 60
     targetMemoryUtilization: 75
 
+# Friendly port nicknames (see docs/NETWORK_PORTS.md)
+# These are Service aliases; classic Styx ports remain primary.
+friendlyPorts:
+  loco: 8080   # local services → emulator
+  grid: 9090   # shared fabric → registry
+
 # Main Inferno emulator instances
 emulator:
   enabled: true

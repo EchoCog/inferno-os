@@ -132,6 +132,7 @@ spec:
       ports:
         - port: 6677
           protocol: TCP
+        # Service alias loco:8080 still targets container port 6677
     - from:
         - podSelector:
             matchLabels:

@@ -3,8 +3,8 @@
 #Configurable parameters
 
 CONF=pc			#default configuration
-CONFLIST=pc pcdisk
-CLEANCONFLIST=pc pcdisk zpc zpcrem pix pcsoe
+CONFLIST=pc pcdisk easy
+CLEANCONFLIST=pc pcdisk easy zpc zpcrem pix pcsoe
 
 SYSTARG=$OSTARG
 OBJTYPE=386
