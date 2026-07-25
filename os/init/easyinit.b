@@ -2,8 +2,8 @@ implement Init;
 #
 # easyinit — first-boot friendly standalone init for newcomers.
 #
-# No remote file server. No bootp requirement. Just devices, a shell,
-# and a short map of how Inferno talks on the network.
+# Lead with the local name space (devices/processes as files).
+# Distributed / grid comes later — same tree, bigger world.
 #
 
 include "sys.m";
@@ -37,10 +37,10 @@ init()
 	print("Setting up a local name space...\n");
 
 	sys->unmount(nil, "/dev");
-	bind("#p", "/prog", sys->MREPL);		# processes
+	bind("#p", "/prog", sys->MREPL);		# processes as directories
 	sys->bind("#d", "/fd", Sys->MREPL);		# file descriptors
-	bind("#c", "/dev", sys->MBEFORE);		# console
-	bind("#e", "/env", sys->MREPL|sys->MCREATE);	# environment
+	bind("#c", "/dev", sys->MBEFORE);		# console device files
+	bind("#e", "/env", sys->MREPL|sys->MCREATE);	# environment as files
 	bind("#m", "/dev", sys->MAFTER);		# mouse (if present)
 	bind("#t", "/dev", sys->MAFTER);		# serial
 
@@ -66,6 +66,7 @@ init()
 		ramfile = nil;
 	}
 
+	nstour();
 	hints();
 
 	shell := load Shell "/dis/sh.dis";
@@ -73,7 +74,7 @@ init()
 		print("init: load /dis/sh.dis: %r\n");
 		exit;
 	}
-	print("Starting shell.  Type `ls' or `bind -a '#c' /dev'.\n\n");
+	print("Starting shell.  Try:  ls /dev    ls /prog    cat /dev/sysname\n\n");
 	shell->init(nil, "/dis/sh.dis" :: nil);
 	print("shell exited\n");
 }
@@ -85,16 +86,27 @@ banner()
 	print("   Inferno OS — welcome\n");
 	print("  ========================================\n");
 	print("\n");
-	print("  You are in standalone mode.\n");
-	print("  Everything you need for a first look is\n");
-	print("  already inside this kernel's root.\n");
+	print("  Standalone mode: your machine is a file tree.\n");
+	print("  Devices and processes live in the name space —\n");
+	print("  like an IDE where CPU/GPU were just files.\n");
+	print("\n");
+}
+
+nstour()
+{
+	print("  Local name space (learn this first):\n");
+	print("    /dev     devices — sensors & motors as files\n");
+	print("    /prog    processes — each PID is a directory\n");
+	print("    /net     network interfaces & protocols\n");
+	print("    /chan    local IPC channels\n");
+	print("    /dis     programs you can run\n");
+	print("    /n       mount points for *other* trees (later)\n");
 	print("\n");
 }
 
 hints()
 {
-	print("\n");
-	print("  Quick map (learn these once):\n");
+	print("  When you are ready for the wider world:\n");
 	print("    8080  loco   — local services on this machine\n");
 	print("    9090  grid   — shared / distributed services\n");
 	print("\n");
@@ -103,10 +115,7 @@ hints()
 	print("    0.0.0.0         host   — accept from all guests\n");
 	print("    255.255.255.255 guest  — speak to all hosts\n");
 	print("\n");
-	print("  Ports are like sensor↔motor pairs: one side listens,\n");
-	print("  the other side acts. Same idea as bind/mount in Inferno.\n");
-	print("\n");
-	print("  Docs: docs/GETTING_STARTED.md  docs/NETWORK_PORTS.md\n");
+	print("  Docs: docs/NAMESPACE.md  docs/GETTING_STARTED.md\n");
 	print("\n");
 }
 

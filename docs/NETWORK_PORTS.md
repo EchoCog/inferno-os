@@ -59,9 +59,18 @@ The Kubernetes / grid manifests in this repo currently use:
 | 6676 | CPU pool (`grid/cpupool`) | Styx/9P |
 | 6677 | Emulator (`emu`) | Styx/9P |
 
-Treat these as **expert / cluster internals**. New user-facing docs and
-scripts prefer **8080 loco** and **9090 grid**. Over time, friendly
-aliases can sit in front of the older numbers without breaking clusters.
+Treat these as **expert / cluster internals**. User-facing docs and
+scripts prefer **8080 loco** and **9090 grid**.
+
+Friendly **Service aliases** (same backends, memorable ports):
+
+| Nickname | Port | Aliases to |
+|----------|------|------------|
+| loco | 8080 | emulator Styx **6677** |
+| grid | 9090 | registry Styx **6675** |
+
+Wired in `k8s/base/*-service.yaml` and Helm `friendlyPorts` — classic
+ports stay primary so existing clusters keep working.
 
 ---
 
@@ -92,6 +101,8 @@ not need the port at all — you just `open` a path. That is the point.
 | `tools/bootable/plan9.ini` | `loco=8080`, `grid=9090` for native boots |
 | `try.sh` | Docker port publishes for 8080/9090 |
 | `tools/bootable/run-qemu.sh` | QEMU `hostfwd` for 8080/9090 |
+| `k8s/base/*-service.yaml` | Service aliases 8080→emu, 9090→registry |
+| `helm/.../values.yaml` | `friendlyPorts.loco` / `friendlyPorts.grid` |
 | `docs/DEPLOYMENT.md` | cluster ports 6675–6677 |
 
 ---

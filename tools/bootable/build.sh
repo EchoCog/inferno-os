@@ -6,17 +6,20 @@
 #   2) Docker: tools/bootable/build.sh --docker
 #
 # Usage:
-#   tools/bootable/build.sh [--docker] [--skip-image]
+#   tools/bootable/build.sh [--docker] [--hd] [--skip-image]
 #
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 USE_DOCKER=0
 SKIP_IMAGE=0
+IMG_MODE="floppy"
 
 for arg in "$@"; do
   case "$arg" in
     --docker) USE_DOCKER=1 ;;
+    --hd|--disk) IMG_MODE="hd" ;;
+    --floppy) IMG_MODE="floppy" ;;
     --skip-image) SKIP_IMAGE=1 ;;
     -h|--help)
       sed -n '2,12p' "$0"
@@ -34,10 +37,11 @@ if [[ "$USE_DOCKER" == "1" ]]; then
   docker build -f "$ROOT/Dockerfile.bootable" -t inferno-os:bootable "$ROOT"
   mkdir -p "$ROOT/tools/bootable/dist"
   docker create --name inferno-boot-copy inferno-os:bootable
-  docker cp inferno-boot-copy:/out/inferno-boot.img "$ROOT/tools/bootable/dist/inferno-boot.img"
+  docker cp inferno-boot-copy:/out/inferno-boot.img "$ROOT/tools/bootable/dist/inferno-boot.img" || true
+  docker cp inferno-boot-copy:/out/inferno-hd.img "$ROOT/tools/bootable/dist/inferno-hd.img" || true
   docker rm inferno-boot-copy
-  echo "Image: tools/bootable/dist/inferno-boot.img"
-  echo "Run:   tools/bootable/run-qemu.sh"
+  echo "Images under tools/bootable/dist/"
+  echo "Run:   tools/bootable/run-qemu.sh tools/bootable/dist/inferno-boot.img"
   exit 0
 fi
 
@@ -76,10 +80,16 @@ if [[ "$SKIP_IMAGE" == "1" ]]; then
   exit 0
 fi
 
-echo "==> Disk image"
-"$ROOT/tools/bootable/mkbootimg.sh" "$ROOT/tools/bootable/dist/inferno-boot.img"
-
-echo
-echo "Done."
-echo "  Boot:  tools/bootable/run-qemu.sh"
-echo "  Docs:  docs/GETTING_STARTED.md"
+echo "==> Disk image ($IMG_MODE)"
+if [[ "$IMG_MODE" == "hd" ]]; then
+  "$ROOT/tools/bootable/mkbootimg.sh" --hd "$ROOT/tools/bootable/dist/inferno-hd.img"
+  echo
+  echo "Done."
+  echo "  Boot:  tools/bootable/run-qemu.sh tools/bootable/dist/inferno-hd.img"
+else
+  "$ROOT/tools/bootable/mkbootimg.sh" --floppy "$ROOT/tools/bootable/dist/inferno-boot.img"
+  echo
+  echo "Done."
+  echo "  Boot:  tools/bootable/run-qemu.sh"
+fi
+echo "  Docs:  docs/GETTING_STARTED.md  docs/NAMESPACE.md"

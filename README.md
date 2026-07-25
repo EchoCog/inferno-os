@@ -18,6 +18,7 @@ That builds (once) and runs hosted Inferno in Docker, with **8080** (loco)
 and **9090** (grid) forwarded to your machine.
 
 Plain-language guide: **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**  
+Name space first (devices as files): **[docs/NAMESPACE.md](docs/NAMESPACE.md)**  
 Port map everyone should know: **[docs/NETWORK_PORTS.md](docs/NETWORK_PORTS.md)**
 
 ## Bootable image (native kernel + bootloader)
@@ -25,9 +26,14 @@ Port map everyone should know: **[docs/NETWORK_PORTS.md](docs/NETWORK_PORTS.md)*
 ```bash
 tools/bootable/build.sh --docker
 tools/bootable/run-qemu.sh
+
+# Larger disk image (MBR + FAT16):
+tools/bootable/build.sh --docker --hd   # also built in Dockerfile.bootable
+tools/bootable/run-qemu.sh tools/bootable/dist/inferno-hd.img
 ```
 
-Produces a QEMU-bootable floppy image (`9load` → `ieasy` → friendly shell).
+Produces a QEMU-bootable image (`9load` → `ieasy` → friendly shell).
+First lesson after boot: `ls /dev` — your machine is a file tree.
 Details: [docs/BOOTABLE.md](docs/BOOTABLE.md) · [tools/bootable/](tools/bootable/)
 
 | Nickname | Port | Meaning |
@@ -68,6 +74,7 @@ helm install inferno helm/inferno-cluster --namespace inferno --create-namespace
 ### Cluster docs
 
 - [Getting Started](docs/GETTING_STARTED.md) — Express / Bootable / Expert
+- [Name Space](docs/NAMESPACE.md) — devices & processes as files (before “distributed”)
 - [Network & Ports](docs/NETWORK_PORTS.md) — loco, grid, self/host/guest
 - [Bootable Inferno](docs/BOOTABLE.md) — bootloader, kernel, QEMU image
 - [Deployment Guide](docs/DEPLOYMENT.md)

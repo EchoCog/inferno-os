@@ -70,12 +70,22 @@ Details: [BOOTABLE.md](BOOTABLE.md) and [tools/bootable/README.md](../tools/boot
 
 ## 3. Mental model in five minutes
 
-### Everything is a file
+### Your machine is a file tree (start here)
 
-Devices, networks, and services show up in a name space. You
-`bind` and `mount` them instead of learning a new API per resource.
+Distributed Inferno is tough if you jump straight to it. First treat the
+machine like that IDE sidebar where **CPU/GPU were just files**:
 
-### Ports people should just know
+```text
+ls /
+ls /dev
+ls /prog
+ls /net
+myspace          # guided tour (after hosted build)
+```
+
+Full walkthrough: **[NAMESPACE.md](NAMESPACE.md)**.
+
+### Ports people should just know (after the tree)
 
 | Port | Name | Role |
 |------|------|------|
@@ -110,6 +120,7 @@ They still matter — later.
 
 ## 5. Where next
 
+- Name space first: [NAMESPACE.md](NAMESPACE.md)
 - Cluster on Kubernetes: [DEPLOYMENT.md](DEPLOYMENT.md)
 - Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
 - Native ports / compilers: `doc/port.ms`, `INSTALL`

@@ -56,13 +56,8 @@ RUN cd os/boot/pc && mk install
 RUN cd os/pc && mk CONF=easy install
 
 RUN mkdir -p /out \
- && python3 tools/bootable/mkfatfloppy.py \
-      -o /out/inferno-boot.img \
-      -b Inferno/386/pbs \
-      -l INFERNO \
-      Inferno/386/9load=9LOAD \
-      tools/bootable/plan9.ini=PLAN9.INI \
-      Inferno/386/bin/ieasy=IEASY
+ && tools/bootable/mkbootimg.sh --floppy /out/inferno-boot.img \
+ && tools/bootable/mkbootimg.sh --hd /out/inferno-hd.img
 
 FROM scratch AS export
 COPY --from=hosted /out/inferno-boot.img /inferno-boot.img

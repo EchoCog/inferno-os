@@ -15,6 +15,12 @@ spec:
       port: {{ .Values.emulator.port }}
       targetPort: styx
       protocol: TCP
+    {{- if .Values.friendlyPorts }}
+    - name: loco
+      port: {{ .Values.friendlyPorts.loco }}
+      targetPort: styx
+      protocol: TCP
+    {{- end }}
     {{- if .Values.monitoring.enabled }}
     - name: metrics
       port: {{ .Values.monitoring.metricsPort }}

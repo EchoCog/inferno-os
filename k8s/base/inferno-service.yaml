@@ -17,3 +17,8 @@ spec:
       port: 6677
       targetPort: styx
       protocol: TCP
+    # Friendly alias: loco = local services on this machine
+    - name: loco
+      port: 8080
+      targetPort: styx
+      protocol: TCP

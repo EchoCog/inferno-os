@@ -25,10 +25,25 @@ BIOS → PBS → 9load → plan9.ini → ieasy → easyinit → shell
 tools/bootable/build.sh --docker
 tools/bootable/run-qemu.sh
 
+# Hard-disk style image (MBR + FAT16 partition)
+tools/bootable/mkbootimg.sh --hd
+tools/bootable/run-qemu.sh tools/bootable/dist/inferno-hd.img
+
 # Or, with a local hosted toolchain already installed:
 tools/bootable/build.sh
 tools/bootable/run-qemu.sh
 ```
+
+After boot, ignore “distributed” for a minute:
+
+```text
+ls /dev
+ls /prog
+cat /dev/sysname
+```
+
+That IDE feeling — devices as files in the tree — *is* the model.
+See `docs/NAMESPACE.md`.
 
 ## Expert knobs
 

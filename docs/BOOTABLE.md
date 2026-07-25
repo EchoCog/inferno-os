@@ -79,7 +79,9 @@ tools/bootable/mkbootimg.sh
 
 ---
 
-## Image layout (FAT12 floppy)
+## Image layouts
+
+### Floppy (default, smallest barrier)
 
 ```text
 9LOAD       bootloader
@@ -87,12 +89,24 @@ PLAN9.INI   config
 IEASY       kernel
 ```
 
-Created by `tools/bootable/mkbootimg.sh` → `mkfatfloppy.py`, which
-mirrors Inferno’s `disk/format -f -d -b pbs` behaviour closely enough
-for QEMU and BIOS floppies.
+`tools/bootable/mkbootimg.sh --floppy` → `mkfatfloppy.py`
 
-Larger hard-disk / USB images (MBR + `pbslba` + FAT partition) are a
-natural next step; the floppy path clears the **first** barrier.
+### Hard disk / USB-style
+
+```text
+MBR
+  └─ FAT16 partition (PBS/pbslba)
+        9LOAD  PLAN9.INI  IEASY
+```
+
+```bash
+tools/bootable/build.sh --hd
+# or, with artifacts already built:
+tools/bootable/mkbootimg.sh --hd
+tools/bootable/run-qemu.sh tools/bootable/dist/inferno-hd.img
+```
+
+`plan9-hd.ini` uses `bootfile=hd0!dos!ieasy`.
 
 ---
 

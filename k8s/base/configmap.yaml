@@ -19,6 +19,11 @@ data:
   CPUPOOL_IDLE_TIMEOUT: "300"
   # Inferno emulator settings
   EMU_FLAGS: "-c1"
+  # Friendly port nicknames (aliases in front of classic Styx ports)
+  LOCO_PORT: "8080"
+  GRID_PORT: "9090"
+  LOCO_TARGET: "6677"
+  GRID_TARGET: "6675"
   # mkconfig template for container builds
   mkconfig: |
     ROOT=/usr/inferno
