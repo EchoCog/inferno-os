@@ -76,14 +76,12 @@ Create profile tools in `agent-zero/agents/inferno-os/tools/`. Each file is a `T
 
 ```python
 from helpers.tool import Tool, Response
-import subprocess, shlex
+import subprocess
 
 class InfernoNamespaceTool(Tool):
     async def execute(self, method="ls", path="/", host="localhost", port="6677", **kwargs) -> Response:
         """Inspect or manipulate an Inferno namespace over 9P."""
-        path = shlex.quote(path)
-        host = shlex.quote(host)
-        port = shlex.quote(port)
+        # Arguments are passed as a list, so no shell quoting is needed.
 
         # Use a 9P client available in the environment, e.g. 9pfs, v9fs, or a Python 9P client.
         # This example assumes a helper executable `9pread` that speaks 9P.
