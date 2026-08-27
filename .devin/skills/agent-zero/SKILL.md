@@ -64,6 +64,7 @@ You are an Inferno OS specialist. You understand the Styx/9P protocol, Limbo/Dis
 ## Operating principles
 - Prefer read-only mounts for inspection.
 - Keep Styx ports cluster-internal by default (6675, 6676, 6677).
+- Respect `peerbot` training wheels: use `loco` (8080) and `grid` (9090) before `--public` or expert 667x ports, and require `tools/peerbot/learn.sh` progress for wider publishes.
 - Validate protocol changes with `tools/styxtest` before deploying.
 - When modifying a device or file server, preserve the `Qid`/`Fid` contract.
 ```
@@ -145,8 +146,23 @@ Then verify:
 - When `tools/libstyx` gains new helpers, update tool implementations to use them.
 - Re-read the `plan9-file-server` skill for 9P/Styx protocol details.
 
+## Peerbot training wheels
+
+`inferno-os` exposes ports through `tools/peerbot` so developers learn the name space before opening the grid. When building Agent Zero tools that publish or connect to host ports, mirror these stages:
+
+| Stage | User can open | Agent Zero rule |
+|-------|---------------|-----------------|
+| 0 — closed | nothing | Do not publish host ports. Inspect `/dev`, `/prog`, and `/net` locally. |
+| 1 — loco | `8080` on `127.0.0.1` | Allow local-only services and loopback `9P` mounts. |
+| 2 — grid | `9090` on `127.0.0.1` | Allow shared / discovery fabric, still without `--public`. |
+| 3 — public | `0.0.0.0` | Require an explicit user confirmation before binding all interfaces. |
+| 4 — expert | `6675`–`6677`, raw port assignments | Reserved for cluster debugging; prefer `loco`/`grid` aliases. |
+
+Encourage the user to run `tools/peerbot/learn.sh` before unlocking wider access. In scripts, check progress with `tools/peerbot/peerbot.sh status --allow <nick>` and let peerbot print the gate error rather than overriding it.
+
 ## Common mistakes
 
 - **Do not** hardcode Styx ports other than the standard registry/cpu-pool/emulator trio unless the user explicitly asks.
+- **Do not** bypass `peerbot` gates silently; if the user needs `--public`, surface the gate message and let them run `learn.sh` or set `PEERBOT_EXPERT=1` explicitly.
 - **Do not** run destructive namespace operations (`unmount`, `remove`) without confirming the target.
 - **Do not** commit API keys or kubeconfigs in the agent profile; use Agent Zero project secrets.
