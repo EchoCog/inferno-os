@@ -37,7 +37,7 @@ WORKDIR $INFERNO
 # FT_Set_Named_Instance, etc.).  Copying Inferno's custom config files over the
 # downloaded ones ensures the build only references the modules that are
 # actually compiled.
-RUN curl -L "https://download.savannah.gnu.org/releases/freetype/freetype-${FREETYPE_VERSION}.tar.xz" \
+RUN curl -L "https://download-mirror.savannah.gnu.org/releases/freetype/freetype-${FREETYPE_VERSION}.tar.xz" \
         -o /tmp/freetype.tar.xz \
     && echo "${FREETYPE_SHA256}  /tmp/freetype.tar.xz" | sha256sum -c - \
     && tar xf /tmp/freetype.tar.xz -C libfreetype \
